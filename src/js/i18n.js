@@ -61,7 +61,7 @@ const translations = {
         "ana_achievement": "目標達成率",
 
         // Settings
-        "set_about_title": "Nutri-Vision について",
+        "set_about_title": "このアプリについて",
         "set_about_p1": "写真1枚からAIがカロリー・栄養素を自動解析し、日々の健康・ダイエットをサポートする次世代の栄養トラッキングアプリです。",
         "set_about_p2": "毎日の食事の写真を撮るだけで、目標カロリーに達しているか、PFCバランスが適正に保たれているかがグラフで一目でわかります。面倒な手入力が不要になり、あなたの健康的な選択を後押しします。",
         "set_about_step_title": "使い始めるための設定",
@@ -87,7 +87,7 @@ const translations = {
         "set_btn_calc": "設定を保存して計算する",
         "set_ai_title": "2. AI解析の設定",
         "set_ai_desc": "Gemini APIの利用には専用のキーが必要です。<br><a href='https://aistudio.google.com/app/apikey' target='_blank' style='color: var(--accent-primary); font-weight: bold; text-decoration: underline;'>Google AI Studio (こちらをクリック)</a> で無料で取得できます。",
-        "set_ai_howto_title": "詳しい取得方法を開く",
+        "set_ai_howto_title": "APIキーの取得手順",
         "set_ai_howto_1": "上のリンクから <strong>Google AI Studio</strong> にGoogleアカウントでログインします。",
         "set_ai_howto_2": "画面左上の <strong>「Get API key」</strong> をクリックします。",
         "set_ai_howto_3": "<strong>「Create API key」</strong> ボタンを押し、キーを作成します。",
@@ -217,7 +217,7 @@ const translations = {
         "ana_weekly_avg": "Weekly Avg Intake",
         "ana_achievement": "Target Achievement",
 
-        "set_about_title": "About Nutri-Vision",
+        "set_about_title": "About this App",
         "set_about_p1": "A next-generation nutrition tracking app that uses AI to automatically analyze calories and nutrients from a single photo, supporting your health journey.",
         "set_about_p2": "Simply take photos of your meals to see at a glance if you are meeting your daily goals and maintaining a healthy PFC balance. It eliminates tedious manual logging and supports your healthy choices.",
         "set_about_step_title": "Steps to Get Started",
@@ -243,7 +243,7 @@ const translations = {
         "set_btn_calc": "Save & Calculate",
         "set_ai_title": "2. AI API Settings",
         "set_ai_desc": "A Gemini API Key is required to use the AI analysis.<br>You can <a href='https://aistudio.google.com/app/apikey' target='_blank' style='color: var(--accent-primary); font-weight: bold; text-decoration: underline;'>get it for free at Google AI Studio</a>.",
-        "set_ai_howto_title": "How to get your API Key",
+        "set_ai_howto_title": "API Key Setup Guide",
         "set_ai_howto_1": "Sign in to <strong>Google AI Studio</strong> using the link above.",
         "set_ai_howto_2": "Click <strong>'Get API key'</strong> in the top left menu.",
         "set_ai_howto_3": "Click the <strong>'Create API key'</strong> button to generate a new key.",
