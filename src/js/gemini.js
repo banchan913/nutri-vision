@@ -122,15 +122,20 @@ fileInput.addEventListener('change', async (e) => {
             const isQuota = errMsgStr.includes('429') || errMsgStr.includes('quota') || errMsgStr.includes('limit') || errMsgStr.includes('too many') || errMsgStr.includes('token');
             const showMsg = isQuota ? t('ai_err_quota') : t('ai_err_fail');
             
-            alert(`${showMsg}\nDetail: ${err.message}`); 
             const container = document.getElementById('image-preview-container');
             if(container) {
-                container.innerHTML = `<div style="padding: 20px; background: rgba(239,68,68,0.1); border: 2px solid var(--accent-danger); border-radius: var(--radius-md);">
+                container.innerHTML = `<div style="padding: 20px; background: rgba(239,68,68,0.1); border: 2px solid var(--accent-danger); border-radius: var(--radius-md); text-align: center;">
                     <h4 style="color: var(--accent-danger); margin-bottom: 10px;">${showMsg}</h4>
-                    <p style="font-size: 13px; color: var(--text-main); word-break: break-all;">${err.message}</p>
+                    <p style="font-size: 13px; color: var(--text-main); word-break: break-all; margin-bottom: 15px;">${err.message}</p>
+                    <p style="font-size: 13px; margin-bottom: 15px;">※制限エラーの場合、設定から「使用モデル」を別のに変更して再度お試しください。再読み込みは不要です。</p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button class="btn btn-secondary" onclick="document.getElementById('image-preview-container').classList.add('preview-hidden'); document.getElementById('image-preview-container').innerHTML='<img id=\\'image-preview\\' style=\\'max-width: 100%; border-radius: 8px;\\'>';">閉じる</button>
+                        <button class="btn btn-primary" onclick="switchTab('settings'); document.getElementById('image-preview-container').classList.add('preview-hidden'); document.getElementById('image-preview-container').innerHTML='<img id=\\'image-preview\\' style=\\'max-width: 100%; border-radius: 8px;\\'>';">設定を開く</button>
+                    </div>
                 </div>`;
                 container.classList.remove('preview-hidden');
             }
+            if (fileInput) fileInput.value = '';
         }
     };
     reader.readAsDataURL(file);
