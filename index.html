@@ -171,6 +171,24 @@
 
                 <!-- Settings Tab -->
                 <section id="settings-tab" class="tab-pane">
+                    <div class="settings-group app-info" style="margin-bottom: 25px; padding: 20px; border-radius: 16px; background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <i class="ph-duotone ph-sparkle" style="font-size: 24px; color: var(--accent-primary);"></i>
+                            <h3 data-i18n="set_about_title" style="margin: 0; font-size: 18px;">Nutri-Vision について</h3>
+                        </div>
+                        <p data-i18n="set_about_p1" style="font-size: 14px; color: var(--text-main); margin-bottom: 8px; line-height: 1.5; font-weight: 500;">写真1枚からAIがカロリー・栄養素を自動解析し、日々の健康・ダイエットをサポートする次世代の栄養トラッキングアプリです。</p>
+                        <p data-i18n="set_about_p2" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">毎日の食事の写真を撮るだけで、目標カロリーに達しているか、PFCバランスが適正に保たれているかがグラフで一目でわかります。面倒な手入力が不要になり、あなたの健康的な選択を後押しします。</p>
+                        
+                        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border-left: 3px solid var(--accent-primary);">
+                            <h4 data-i18n="set_about_step_title" style="margin-bottom: 12px; font-size: 14px; color: var(--text-main);">使い始めるための設定</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 10px; line-height: 1.4;">
+                                <li data-i18n="set_about_s1"><b>1. プロフィール</b>: あなた専用の目標カロリーを算出するための基本情報です。</li>
+                                <li data-i18n="set_about_s2"><b>2. AI解析設定</b>: 食事を自動解析するためのGemini APIキーを設定します（取得無料）。</li>
+                                <li data-i18n="set_about_s3"><b>3. クラウド同期 (任意)</b>: スマホ単体で使用する場合は設定不要です。PCと同期したい場合のみ設定してください。</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
                     <div id="onboarding-guide" class="onboarding-banner hidden">
                         <div class="banner-icon"><i class="ph-duotone ph-sparkle"></i></div>
                         <div class="banner-body">
@@ -271,6 +289,9 @@
                             </ol>
                             <div style="margin-top: 15px; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; font-size: 12px;">
                                 <i class="ph ph-info"></i> <strong>同期ボタンについて</strong>: 右上の「同期」ボタンを押すと、スプレッドシートに保存されている最新のデータを読み込み、現在の画面に反映させます（端末間のデータ消失を防ぎます）。
+                                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                    <span data-i18n="set_sync_note" style="color: var(--accent-primary); font-weight: bold;">※スマホ単体でご利用の場合はこの設定は不要です。データは自動で端末内に保存されます。</span>
+                                </div>
                             </div>
                         </div>
                         <button class="btn btn-secondary" style="width: 100%; margin-bottom: 15px;" onclick="copyGasScript()">

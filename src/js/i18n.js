@@ -57,6 +57,15 @@ const translations = {
         "ana_achievement": "目標達成率",
 
         // Settings
+        "set_about_title": "Nutri-Vision について",
+        "set_about_p1": "写真1枚からAIがカロリー・栄養素を自動解析し、日々の健康・ダイエットをサポートする次世代の栄養トラッキングアプリです。",
+        "set_about_p2": "毎日の食事の写真を撮るだけで、目標カロリーに達しているか、PFCバランスが適正に保たれているかがグラフで一目でわかります。面倒な手入力が不要になり、あなたの健康的な選択を後押しします。",
+        "set_about_step_title": "使い始めるための設定",
+        "set_about_s1": "<b>1. プロフィール</b>: あなた専用の目標カロリーを算出するための基本情報です。",
+        "set_about_s2": "<b>2. AI解析設定</b>: 食事を自動解析するためのGemini APIキーを設定します（取得無料）。",
+        "set_about_s3": "<b>3. クラウド同期 (任意)</b>: スマホ単体で使用する場合は設定不要です。PCと同期したい場合のみ設定してください。",
+        "set_sync_note": "※スマホ単体でご利用の場合はこの設定は不要です。データは自動で端末内に保存されます。",
+        
         "set_guide_title": "Welcome to Nutri-Vision!",
         "set_guide_desc": "最初に使用を開始するための3つのステップを設定しましょう。PCの設定情報は、このページの下部にあるQRコードでスマホへ簡単に引き継げます。",
         "set_prof_title": "1. パーソナルプロフィール（推奨摂取量の計算）",
@@ -121,6 +130,7 @@ const translations = {
         "ai_status_done": "解析完了！結果を表示します...",
         "ai_err_no_ans": "AIからの有効な回答が得られませんでした。",
         "ai_err_fail": "解析に失敗しました。",
+        "ai_err_quota": "APIの利用制限またはトークン不足です。設定画面の「AI解析の設定」から「テスト」を押し、軽量なモデル(例: 8b 等)に変更してやり直してください。",
         
         // Days
         "day_sun": "日", "day_mon": "月", "day_tue": "火", "day_wed": "水", "day_thu": "木", "day_fri": "金", "day_sat": "土",
@@ -191,6 +201,15 @@ const translations = {
         "ana_weekly_avg": "Weekly Avg Intake",
         "ana_achievement": "Target Achievement",
 
+        "set_about_title": "About Nutri-Vision",
+        "set_about_p1": "A next-generation nutrition tracking app that uses AI to automatically analyze calories and nutrients from a single photo, supporting your health journey.",
+        "set_about_p2": "Simply take photos of your meals to see at a glance if you are meeting your daily goals and maintaining a healthy PFC balance. It eliminates tedious manual logging and supports your healthy choices.",
+        "set_about_step_title": "Steps to Get Started",
+        "set_about_s1": "<b>1. Profile</b>: Basic info to calculate your daily target.",
+        "set_about_s2": "<b>2. AI API Settings</b>: Set your Gemini API key (free to get) to enable meal analysis.",
+        "set_about_s3": "<b>3. Cloud Sync (Optional)</b>: Not required if you only use your smartphone. Set this up only to sync with a PC.",
+        "set_sync_note": "*Not required if using a smartphone exclusively. Data is auto-saved locally.",
+
         "set_guide_title": "Welcome to Nutri-Vision!",
         "set_guide_desc": "Complete these 3 steps to start. You can transfer PC settings to mobile via QR code below.",
         "set_prof_title": "1. Personal Profile (Target Calc)",
@@ -253,6 +272,7 @@ const translations = {
         "ai_status_done": "Done! Showing results...",
         "ai_err_no_ans": "No valid response from AI.",
         "ai_err_fail": "Analysis failed.",
+        "ai_err_quota": "API Quota/Token limit exceeded. Go to Settings > AI API Settings, click 'Test', and select a lighter model.",
         
         "day_sun": "Sun", "day_mon": "Mon", "day_tue": "Tue", "day_wed": "Wed", "day_thu": "Thu", "day_fri": "Fri", "day_sat": "Sat",
         

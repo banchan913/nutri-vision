@@ -115,11 +115,15 @@ fileInput.addEventListener('change', async (e) => {
             showEditModal(data);
         } catch (err) { 
             console.error(err); 
-            alert(`${t('ai_err_fail')}\nDetail: ${err.message}`); 
+            const errMsgStr = err.message.toLowerCase();
+            const isQuota = errMsgStr.includes('429') || errMsgStr.includes('quota') || errMsgStr.includes('limit') || errMsgStr.includes('too many') || errMsgStr.includes('token');
+            const showMsg = isQuota ? t('ai_err_quota') : t('ai_err_fail');
+            
+            alert(`${showMsg}\nDetail: ${err.message}`); 
             const container = document.getElementById('image-preview-container');
             if(container) {
                 container.innerHTML = `<div style="padding: 20px; background: rgba(239,68,68,0.1); border: 2px solid var(--accent-danger); border-radius: var(--radius-md);">
-                    <h4 style="color: var(--accent-danger); margin-bottom: 10px;">${t('ai_err_fail')}</h4>
+                    <h4 style="color: var(--accent-danger); margin-bottom: 10px;">${showMsg}</h4>
                     <p style="font-size: 13px; color: var(--text-main); word-break: break-all;">${err.message}</p>
                 </div>`;
                 container.classList.remove('preview-hidden');
