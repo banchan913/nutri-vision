@@ -40,15 +40,23 @@ This application operates entirely on the front-end without requiring any comple
 - **AI Analysis**: [Google Gemini 1.5 Flash](https://aistudio.google.com/app/prompts/new_chat) (REST API Call)
 - **Cloud Sync**: Google Apps Script (GAS) to read/write Google Spreadsheets (using JSONP to bypass CORS)
 
-### ☁️ Cloud Sync Setup (Optional)
+### 💾 Data Storage & Backup
 
-If you want to sync your data between your smartphone and PC, you can configure a Google Spreadsheet as your database.
+This application offers two ways to store your data depending on your needs.
 
-1. Create a new [Google Spreadsheet](https://sheets.new) and open "Extensions" > "Apps Script".
+#### 📱 Pattern A: Using the app on a single device (Local Storage)
+By default, the app runs in **Local Storage Mode**. No complex setup like GAS is required, and all tracking and AI features function perfectly.
+- **Save Location**: All data and settings are securely saved inside your current browser.
+- **Backup / Export**: If you want to keep a record or migrate to a new device, go to the "Settings" tab and click **"Export to CSV"**. This will download all your daily history as a CSV file to your device's download folder (or Files app on mobile).
+
+#### ☁️ Pattern B: Multi-device sync using Google Sheets (Cloud Mode)
+If you want to sync data seamlessly between your smartphone and PC, you can configure a Google Spreadsheet as your database. Since the Google Apps Script editor does not open on mobile browsers, **we strongly recommend setting this up on a PC first**, then transferring the settings to your smartphone.
+1. On your PC, create a new [Google Spreadsheet](https://sheets.new) and open "Extensions" > "Apps Script".
 2. In the Nutri-Vision app, go to the "Settings" tab, click the "Copy GAS Script" button, and paste the code into the Apps Script editor, overwriting any default code.
 3. In the Apps Script editor, click "Deploy" > "New deployment" in the top right.
-4. Select "Web app" as the deployment type, set **Who has access to "Anyone"**, and click Deploy.
-5. Copy the displayed "Web app URL" (`https://script.google.com/macros/s/.../exec`) and paste it into the Cloud Sync section of the app's settings.
+4. Select "Web app", set **Who has access to "Anyone"**, and click Deploy.
+5. Copy the displayed "Web app URL" and paste it into the Cloud Sync section of the app's settings on your PC.
+6. Click **"Show QR Code"** in the app to display a QR code containing these settings, and scan it with your smartphone's camera to effortlessly transfer the configuration.
 
 ### 🔒 Privacy
 
@@ -90,15 +98,23 @@ This application runs purely on the front-end. By default, all your dietary data
 - **AI 解析**: [Google Gemini 1.5 Flash](https://aistudio.google.com/app/prompts/new_chat) (REST API呼び出し)
 - **クラウド同期 (BaaS代用)**: Google Apps Script (GAS) 経由での Google Spreadsheet 読み書き（JSONPによるCORS回避実装）
 
-### ☁️ クラウド同期のセットアップ手順（任意）
+### 💾 データの保存とバックアップについて
 
-スマホとPCでデータを同期したい場合、以下の手順でスプレッドシートをデータベース化できます。
+利用目的や環境に合わせて、2つの保存方法で利用できます。
 
-1. [Google スプレッドシート](https://sheets.new) を新規作成し、「拡張機能」>「Apps Script」を開きます。
+#### 📱 パターンA: スマホ単体（またはPC単体）で使う場合
+標準の**「端末保存モード」**です。GAS等の複雑な設定は一切不要で、AI解析やグラフ表示など全機能がそのままお使いいただけます。
+- **保存場所**: 入力されたデータはすべてお使いのブラウザ自体（LocalStorage）の中だけに保存されます。
+- **バックアップ**: アプリの「設定」画面の一番下にある「CSV形式で全履歴を出力」を押すと、エクセル等で開けるCSVファイルとしてデータをダウンロードできます（スマホの場合は「ファイル」アプリやダウンロードフォルダに保存されます）。機種変更時の記録用などに利用してください。
+
+#### ☁️ パターンB: PCとスマホ間などでクラウド同期したい場合
+スプレッドシートをデータベースとして活用し、データを永続化するモードです。 Google Apps Script の画面はスマホアプリからは操作できないため、**PCのブラウザで設定することを強く推奨**します。
+1. PCで [Google スプレッドシート](https://sheets.new) を新規作成し、「拡張機能」>「Apps Script」を開きます。
 2. アプリの「設定」画面中段にある「GASスクリプトをコピー」ボタンを押し、コードをApps Scriptエディタに貼り付けて保存します。
 3. Apps Scriptの右上にある「デプロイ」>「新しいデプロイ」を選択します。
 4. 種類を「ウェブアプリ」とし、**アクセスできるユーザーを「全員 (Anyone)」** に設定して「デプロイ」を実行します。
-5. 表示された「ウェブアプリの URL (`https://script.google.com/macros/s/.../exec`)」をアプリの設定画面に入力してください。
+5. 表示された「ウェブアプリの URL」を、PC版アプリの設定画面に入力してください。
+6. 設定後、画面下部の**「スマホ用QRコードを表示」**を押し、スマホのカメラで読み取るだけで、URLの手打ちなどの手間なくスマホ側へ環境を引き継ぐことができます。
 
 ### 🔒 プライバシーについて
 
