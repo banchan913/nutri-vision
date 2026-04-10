@@ -47,6 +47,9 @@ function initApp() {
         initProfileSegmentLogic();
         initActivitySegmentLogic();
         renderApp();
+        
+        // [Phase 16] 起動時のタブを確実に反映（初回は settings、2回目以降は dashboard）
+        switchTab(state.activeTab);
     } catch (e) {
         console.error("Master, initialization failed:", e);
     }
