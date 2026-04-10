@@ -38,8 +38,8 @@ async function analyzeImage(base64Data, mimeType, mode = 'food') {
         : `この栄養成分表示の画像/This nutrition labelを解析してください。全ての項目名を指定された言語で出力してください。${langSuffixStr}`;
 
     const systemPrompt = currentLang === 'ja'
-        ? "あなたは日本の栄養管理の専門家です。全ての出力、特に料理名(name)は、必ず日本語で記述してください。結果は厳密に指定されたJSONフォーマットで回答してください。"
-        : "You are an expert in nutrition management. You must output everything, especially the dish name (name), in English. Respond strictly in the specified JSON format.";
+        ? "あなたは日本の栄養管理の専門家です。全ての出力、特に料理名(name)は、必ず日本語で記述してください。各栄養素だけでなく野菜の総重量(g)、うち緑黄色野菜の重量(g)、食物繊維(g)も推測してください。結果は厳密に指定されたJSONフォーマットで回答してください。"
+        : "You are an expert in nutrition management. You must output everything, especially the dish name (name), in English. Please also estimate total vegetable weight (g), green-yellow vegetable weight (g), and dietary fiber (g). Respond strictly in the specified JSON format.";
 
     const payload = {
         contents: [{ parts: [{ text: userPrompt }, { inline_data: { mime_type: mimeType, data: base64Data } }] }],
@@ -54,9 +54,12 @@ async function analyzeImage(base64Data, mimeType, mode = 'food') {
                     p: { type: "number" },
                     f: { type: "number" },
                     c: { type: "number" },
-                    salt: { type: "number" }
+                    salt: { type: "number" },
+                    fiber: { type: "number" },
+                    veg: { type: "number" },
+                    gyVeg: { type: "number" }
                 },
-                required: ["name", "calories", "p", "f", "c", "salt"]
+                required: ["name", "calories", "p", "f", "c", "salt", "fiber", "veg", "gyVeg"]
             }
         }
     };
@@ -226,6 +229,27 @@ function showEditModal(data) {
                         <span style="font-size: 12px; color: var(--text-secondary);">g</span>
                     </div>
                 </div>
+                <div class="edit-item">
+                    <label>${t('edit_fiber')}</label>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <input type="number" id="edit-fiber" step="0.1" value="${data.fiber || 0}">
+                        <span style="font-size: 12px; color: var(--text-secondary);">g</span>
+                    </div>
+                </div>
+                <div class="edit-item">
+                    <label>${t('edit_veg')}</label>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <input type="number" id="edit-veg" step="1" value="${data.veg || 0}">
+                        <span style="font-size: 12px; color: var(--text-secondary);">g</span>
+                    </div>
+                </div>
+                <div class="edit-item">
+                    <label>${t('edit_gyveg')}</label>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <input type="number" id="edit-gyveg" step="1" value="${data.gyVeg || 0}">
+                        <span style="font-size: 12px; color: var(--text-secondary);">g</span>
+                    </div>
+                </div>
             </div>
     `;
 
@@ -292,6 +316,9 @@ function showEditModal(data) {
             f: parseFloat(document.getElementById('edit-f').value),
             c: parseFloat(document.getElementById('edit-c').value),
             salt: parseFloat(document.getElementById('edit-salt').value),
+            fiber: parseFloat(document.getElementById('edit-fiber').value) || 0,
+            veg: parseInt(document.getElementById('edit-veg').value) || 0,
+            gyVeg: parseInt(document.getElementById('edit-gyveg').value) || 0,
             weight: weightVal || null
         };
         

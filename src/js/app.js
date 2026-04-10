@@ -625,8 +625,8 @@ function doPost(e) {
 function handleLog(data) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Log') || ss.insertSheet('Log');
-  if (sheet.getLastRow() === 0) sheet.appendRow(['ID', '日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重']);
-  sheet.appendRow([data.id, data.date, data.time, data.name, data.calories, data.p, data.f, data.c, data.salt, data.weight || '']);
+  if (sheet.getLastRow() === 0) sheet.appendRow(['ID', '日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重', '食物繊維', '野菜', '緑黄色野菜']);
+  sheet.appendRow([data.id, data.date, data.time, data.name, data.calories, data.p, data.f, data.c, data.salt, data.weight || '', data.fiber || 0, data.veg || 0, data.gyVeg || 0]);
   return sendResponse({ status: 'success' });
 }
 
@@ -643,11 +643,11 @@ function handleBatch(data, e) {
   
   if (data.history && data.history.length > 0) {
     var sheet = ss.getSheetByName('Log') || ss.insertSheet('Log');
-    if (sheet.getLastRow() === 0) sheet.appendRow(['ID', '日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重']);
+    if (sheet.getLastRow() === 0) sheet.appendRow(['ID', '日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重', '食物繊維', '野菜', '緑黄色野菜']);
     var rows = data.history.map(function(h) {
-      return [h.id, h.date, h.time, h.name, h.calories, h.p, h.f, h.c, h.salt, h.weight || ''];
+      return [h.id, h.date, h.time, h.name, h.calories, h.p, h.f, h.c, h.salt, h.weight || '', h.fiber || 0, h.veg || 0, h.gyVeg || 0];
     });
-    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 10).setValues(rows);
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 13).setValues(rows);
   }
   
   if (data.activities && data.activities.length > 0) {
@@ -667,9 +667,9 @@ function handleFetch(e, data) {
   var history = [];
   var logSheet = ss.getSheetByName('Log');
   if (logSheet && logSheet.getLastRow() > 1) {
-    var hRows = logSheet.getRange(2, 1, logSheet.getLastRow() - 1, 10).getValues();
+    var hRows = logSheet.getRange(2, 1, logSheet.getLastRow() - 1, 13).getValues();
     hRows.forEach(function(r) {
-      history.push({ id: r[0], date: r[1], time: r[2], name: r[3], calories: r[4], p: r[5], f: r[6], c: r[7], salt: r[8], weight: r[9] });
+      history.push({ id: r[0], date: r[1], time: r[2], name: r[3], calories: r[4], p: r[5], f: r[6], c: r[7], salt: r[8], weight: r[9], fiber: r[10] || 0, veg: r[11] || 0, gyVeg: r[12] || 0 });
     });
   }
   
@@ -697,9 +697,9 @@ function sendResponse(obj, e) {
 }
 function exportToCSV() {
     const isJa = currentLang === 'ja';
-    const h = isJa ? ['日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重']
-                   : ['Date', 'Time', 'Item', 'Calories', 'Protein', 'Fat', 'Carbs', 'Salt', 'Weight'];
-    const r = state.history.map(x => [x.date, x.time, x.name, x.calories, x.p, x.f, x.c, x.salt || 0, x.weight || '']);
+    const h = isJa ? ['日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重', '食物繊維', '野菜', '緑黄色野菜']
+                   : ['Date', 'Time', 'Item', 'Calories', 'Protein', 'Fat', 'Carbs', 'Salt', 'Weight', 'Fiber', 'Veggies', 'GreenY_Veggies'];
+    const r = state.history.map(x => [x.date, x.time, x.name, x.calories, x.p, x.f, x.c, x.salt || 0, x.weight || '', x.fiber || 0, x.veg || 0, x.gyVeg || 0]);
     const c = "\uFEFF" + [h.join(','), ...r.map(x => x.join(','))].join('\n');
     const b = new Blob([c], { type: 'text/csv;charset=utf-8;' }); const l = document.createElement("a"); l.href = URL.createObjectURL(b); l.download = `NutriVision_${new Date().toISOString().slice(0,10)}.csv`; l.click();
 }

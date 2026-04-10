@@ -21,8 +21,11 @@ function calculateAndDisplayStats() {
         p: acc.p + meal.p,
         f: acc.f + meal.f,
         c: acc.c + meal.c,
-        salt: acc.salt + (meal.salt || 0)
-    }), { calories: 0, p: 0, f: 0, c: 0, salt: 0 });
+        salt: acc.salt + (meal.salt || 0),
+        fiber: acc.fiber + (meal.fiber || 0),
+        veg: acc.veg + (meal.veg || 0),
+        gyVeg: acc.gyVeg + (meal.gyVeg || 0)
+    }), { calories: 0, p: 0, f: 0, c: 0, salt: 0, fiber: 0, veg: 0, gyVeg: 0 });
 
     const totalBurned = todayActs.reduce((acc, act) => acc + act.calories, 0);
     const bmr = getBMR();
@@ -33,7 +36,10 @@ function calculateAndDisplayStats() {
         p: (dailyTarget * 0.15) / 4,
         f: (dailyTarget * 0.25) / 9,
         c: (dailyTarget * 0.60) / 4,
-        salt: state.profile.gender === 'male' ? 7.5 : 6.5
+        salt: state.profile.gender === 'male' ? 7.5 : 6.5,
+        fiber: state.profile.gender === 'male' ? 21 : 18,
+        veg: 350,
+        gyVeg: 120
     };
 
     const applyStatusColor = (val, target, type) => {
@@ -41,6 +47,11 @@ function calculateAndDisplayStats() {
             if (val > target * 1.5) return 'status-red';
             if (val > target) return 'status-yellow';
             return 'status-blue';
+        }
+        if (type === 'fiber' || type === 'veg' || type === 'gyVeg') {
+            if (val >= target) return 'status-blue';
+            if (val >= target * 0.5) return 'status-yellow';
+            return 'status-red';
         }
         const diff = (val / target);
         if (diff >= 0.8 && diff <= 1.2) return 'status-blue';
@@ -73,6 +84,9 @@ function calculateAndDisplayStats() {
     updateCard('today-f', totals.f, targets.f, 'g', 'f');
     updateCard('today-c', totals.c, targets.c, 'g', 'c');
     updateCard('today-salt', totals.salt, targets.salt, 'g', 'salt');
+    updateCard('today-fiber', totals.fiber, targets.fiber, 'g', 'fiber');
+    updateCard('today-veg', totals.veg, targets.veg, 'g', 'veg');
+    updateCard('today-gyveg', totals.gyVeg, targets.gyVeg, 'g', 'gyVeg');
 }
 
 function updateCharts() {

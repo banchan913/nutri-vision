@@ -23,6 +23,10 @@ const translations = {
         "dash_protein": "たんぱく質",
         "dash_fat": "脂質",
         "dash_carbs": "炭水化物",
+        "dash_veg_fiber": "食物繊維・野菜類",
+        "dash_fiber": "食物繊維",
+        "dash_veg": "野菜(総量)",
+        "dash_gyveg": "うち緑黄色",
         "dash_salt_today": "食塩相当量 (今日)",
         "dash_burn_today": "消費エネルギー (今日)",
         "dash_burn_ext": "運動による消費",
@@ -149,6 +153,9 @@ const translations = {
         "edit_style_out": "外食・市販",
         "edit_style_in": "自炊 (脂質・塩分控えめ)",
         "edit_step3": "3. 料理名と各栄養素 (必要なら編集)",
+        "edit_fiber": "食物繊維 (g)",
+        "edit_veg": "野菜総量 (g)",
+        "edit_gyveg": "うち緑黄色 (g)",
         "edit_saved": "記録を保存しました。"
     },
     en: {
@@ -171,6 +178,10 @@ const translations = {
         "dash_protein": "Protein",
         "dash_fat": "Fat",
         "dash_carbs": "Carbs",
+        "dash_veg_fiber": "Fiber & Veggies",
+        "dash_fiber": "Fiber",
+        "dash_veg": "Veggies",
+        "dash_gyveg": "Green.Y Veg",
         "dash_salt_today": "Salt Equivalent (Today)",
         "dash_burn_today": "Energy Burned (Today)",
         "dash_burn_ext": "Burned by Exercise",
@@ -289,6 +300,9 @@ const translations = {
         "edit_style_out": "Eating Out / Store",
         "edit_style_in": "Home Cooked (Low fat/salt)",
         "edit_step3": "3. Nutrients",
+        "edit_fiber": "Fiber (g)",
+        "edit_veg": "Vegetables (g)",
+        "edit_gyveg": "Green.Y Veg (g)",
         "edit_saved": "Record saved."
     }
 };
