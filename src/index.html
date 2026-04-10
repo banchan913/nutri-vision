@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutri-Vision | 厚生労働省基準・パーソナル健康管理</title>
+    <link rel="stylesheet" href="src/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-theme">
+    <div id="app">
+        <nav class="side-nav">
+            <div class="logo">
+                <i class="ph-fill ph-eye"></i>
+                <span>Nutri<span>Vision</span></span>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-tab="dashboard"><i class="ph ph-squares-four"></i><span>ダッシュボード</span></li>
+                <li data-tab="calendar"><i class="ph ph-calendar-blank"></i><span>カレンダー</span></li>
+                <li data-tab="meal-log"><i class="ph ph-camera"></i><span>記録する</span></li>
+                <li data-tab="analysis"><i class="ph ph-chart-line-up"></i><span>トレンド分析</span></li>
+                <li data-tab="history"><i class="ph ph-calendar"></i><span>全履歴</span></li>
+                <li data-tab="settings"><i class="ph ph-gear"></i><span>設定</span></li>
+            </ul>
+            <div class="user-profile" id="user-status">
+                <div class="avatar-placeholder"><i class="ph ph-user"></i></div>
+                <div class="user-info">
+                    <span class="user-name">ゲストユーザー</span>
+                    <span class="user-email">端末保存モード</span>
+                </div>
+            </div>
+        </nav>
+
+        <main class="content-area">
+            <header class="main-header">
+                <h1 id="page-title">ダッシュボード</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="sync-btn" title="クラウド（スプレッドシート）の最新データを取り込み、同期します"><i class="ph ph-arrows-clockwise"></i><span>同期</span></button>
+                    <button class="btn btn-primary" id="quick-add-btn" title="食事や運動を新しく記録します"><i class="ph ph-plus-circle"></i><span>記録</span></button>
+                </div>
+            </header>
+
+            <div id="tab-container">
+                <!-- Dashboard Tab -->
+                <section id="dashboard-tab" class="tab-pane active">
+                    <div class="stats-grid">
+                        <div class="stat-card calories">
+                            <div class="card-title">摂取エネルギー (今日)</div>
+                            <div id="today-calories" class="card-value">0 <span class="unit">kcal</span></div>
+                            <div class="card-progress"><div class="progress-bar" id="calorie-progress" style="width: 0%;"></div></div>
+                            <div class="card-target" id="calorie-target-display">目標: -- kcal</div>
+                        </div>
+                        <div class="stat-card pfc">
+                            <div class="card-title">三大栄養素バランス</div>
+                            <div class="pfc-values">
+                                <div class="pfc-item"><span>たんぱく質</span> <div id="today-p" class="card-value">0 <span class="unit">g</span></div></div>
+                                <div class="pfc-item"><span>脂質</span> <div id="today-f" class="card-value">0 <span class="unit">g</span></div></div>
+                                <div class="pfc-item"><span>炭水化物</span> <div id="today-c" class="card-value">0 <span class="unit">g</span></div></div>
+                            </div>
+                        </div>
+                        <div class="stat-card salt">
+                            <div class="card-title">食塩相当量 (今日)</div>
+                            <div id="today-salt" class="card-value">0.0 <span class="unit">g</span></div>
+                            <div class="card-progress"><div class="progress-bar salt-bar" id="salt-progress" style="width: 0%;"></div></div>
+                            <div class="card-target" id="salt-target-display">目標: -- g</div>
+                        </div>
+                        <div class="stat-card weight">
+                            <div class="card-title">消費エネルギー (今日)</div>
+                            <div id="today-burned" class="card-value">0 <span class="unit">kcal</span></div>
+                            <div class="card-trend"><i class="ph ph-fire"></i> 運動による消費</div>
+                        </div>
+                    </div>
+                    <div class="charts-container" style="display: flex; flex-direction: column; gap: 30px; margin-top: 20px;">
+                        <div class="chart-box">
+                            <div class="chart-header">
+                                <h3>1. カロリー収支：摂取 vs 目標</h3>
+                                <p class="help-text">目標を越えていないか、毎日の食事量を確認します。</p>
+                            </div>
+                            <div style="height: 250px;"><canvas id="intakeTargetChart"></canvas></div>
+                        </div>
+
+                        <div class="chart-box">
+                            <div class="chart-header">
+                                <h3>2. 三大栄養バランスの質</h3>
+                                <p class="help-text">理想の比率（たんぱく質:15% 脂質:25% 炭水化物:60%）に近いほど健康的です。</p>
+                            </div>
+                            <div style="height: 250px;"><canvas id="pfcBalanceChart"></canvas></div>
+                        </div>
+
+                        <div class="chart-box">
+                            <div class="chart-header">
+                                <h3>3. 体重の推移トレンド</h3>
+                                <p class="help-text">食事と運動による、なだらかな体重の変化を追跡します。</p>
+                            </div>
+                            <div style="height: 200px;"><canvas id="weightTrendChart"></canvas></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Calendar Tab -->
+                <section id="calendar-tab" class="tab-pane">
+                    <div class="calendar-header">
+                        <button class="btn-icon" id="prev-month"><i class="ph ph-caret-left"></i></button>
+                        <h2 id="calendar-month">----年 --月</h2>
+                        <button class="btn-icon" id="next-month"><i class="ph ph-caret-right"></i></button>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid"></div>
+                    <div id="day-details" class="day-details-panel">
+                        <h3>選択した日の記録</h3>
+                        <div id="day-meals-list">日付を選択すると表示されます</div>
+                    </div>
+                </section>
+
+                <!-- Meal Log Tab -->
+                <section id="meal-log-tab" class="tab-pane">
+                    <div class="mode-selector">
+                        <button class="mode-btn active" data-mode="food">食事写真解析</button>
+                        <button class="mode-btn" data-mode="ocr">栄養ラベル解析</button>
+                    </div>
+                    <div class="upload-area" id="drop-zone" style="margin-bottom: 20px;">
+                        <i class="ph ph-cloud-arrow-up"></i>
+                        <p>画像をドラッグ＆ドロップ、またはクリックして撮影</p>
+                        <input type="file" id="file-input" accept="image/*" hidden>
+                        <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">写真を選択</button>
+                    </div>
+                    <!-- プレビュー表示エリア -->
+                    <div id="image-preview-container" class="preview-hidden" style="margin-bottom: 20px; text-align: center;">
+                        <img id="image-preview" src="" style="max-width: 100%; max-height: 300px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 2px solid var(--border-card);">
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">解析中の写真</p>
+                    </div>
+                    <div class="exercise-section" style="text-align: center; margin-bottom: 20px; padding: 20px; border: 2px dashed rgba(255,255,255,0.1); border-radius: var(--radius-md);">
+                        <h4 style="margin-bottom: 10px; color: var(--text-secondary);">運動をした場合はこちら</h4>
+                        <button class="btn btn-secondary" onclick="openModal('activity-modal')">
+                            <i class="ph ph-barbell"></i><span>運動を記録する</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Analysis Tab -->
+                <section id="analysis-tab" class="tab-pane">
+                    <div class="prediction-box">
+                        <h2>栄養摂取トレンド & 未来予想</h2>
+                        <div class="prediction-value" style="margin-bottom: 20px;">
+                            1ヶ月後の予想体重: <span id="predicted-weight" style="font-size: 32px; color: var(--accent-primary);">--</span> kg
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="card-title">今週の平均摂取</div>
+                                <div id="weekly-avg-cal" class="card-value">-- <span class="unit">kcal</span></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="card-title">目標達成率</div>
+                                <div id="weekly-achievement" class="card-value">-- <span class="unit">%</span></div>
+                            </div>
+                        </div>
+                        <div class="chart-box" style="margin-top: 20px;">
+                            <canvas id="predictionChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- History Tab -->
+                <section id="history-tab" class="tab-pane">
+                    <div class="history-list" id="history-list"></div>
+                </section>
+
+                <!-- Settings Tab -->
+                <section id="settings-tab" class="tab-pane">
+                    <div class="settings-group">
+                        <h3>1. パーソナルプロフィール（推奨摂取量の計算）</h3>
+                        <div class="settings-form-grid" style="display: flex; flex-direction: column; gap: 20px;">
+                            <div class="setting-item">
+                                <label>性別</label>
+                                <div class="profile-options" id="profile-gender-selector">
+                                    <div class="segment-btn" data-val="male">男性</div>
+                                    <div class="segment-btn" data-val="female">女性</div>
+                                </div>
+                                <input type="hidden" id="profile-gender" value="male">
+                            </div>
+
+                            <div class="setting-item">
+                                <label>年齢 (歳)</label>
+                                <div class="profile-options" id="profile-age-selector">
+                                    <div class="segment-btn" data-val="20">20代</div>
+                                    <div class="segment-btn" data-val="30">30代</div>
+                                    <div class="segment-btn" data-val="40">40代</div>
+                                    <div class="segment-btn" data-val="50">50代</div>
+                                    <div class="segment-btn" data-val="60">60代〜</div>
+                                </div>
+                                <input type="number" id="profile-age" placeholder="歳" hidden>
+                                <div class="scroll-picker-container" id="picker-age"></div>
+                            </div>
+
+                            <div class="profile-row-grid">
+                                <div class="setting-item">
+                                    <label>身長 (cm)</label>
+                                    <input type="number" id="profile-height" placeholder="cm" hidden>
+                                    <div class="scroll-picker-container" id="picker-height"></div>
+                                </div>
+                                <div class="setting-item">
+                                    <label>体重 (kg)</label>
+                                    <input type="number" id="profile-weight" placeholder="kg" hidden>
+                                    <div class="scroll-picker-container" id="picker-weight"></div>
+                                </div>
+                            </div>
+
+                            <div class="setting-item" style="grid-column: span 2;">
+                                <label>基本の身体活動レベル (PAL)</label>
+                                <div class="pal-guide" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
+                                    <strong>低い</strong>: 生活の大部分が座位（デスクワーク、家で過ごすことが多い）<br>
+                                    <strong>ふつう</strong>: 座位中心だが、通勤・買い物・家事・軽いスポーツ等を含む<br>
+                                    <strong>高い</strong>: 立位や移動が多い仕事、または活発な運動習慣（ジム等）がある
+                                </div>
+                                <div class="profile-options" id="profile-pal-selector">
+                                    <div class="segment-btn" data-val="1.5">低い (1.5)</div>
+                                    <div class="segment-btn" data-val="1.75">ふつう (1.75)</div>
+                                    <div class="segment-btn" data-val="2.0">高い (2.0)</div>
+                                </div>
+                                <input type="hidden" id="profile-pal" value="1.75">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveProfile()">設定を保存して計算する</button>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>2. AI解析の設定</h3>
+                        <p class="help-text" style="margin-bottom: 10px;">
+                            Gemini APIキーが必要です。<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-primary);">Google AI Studio</a> で無料で取得できます。
+                        </p>
+                        <div class="setting-item">
+                            <label>Gemini APIキー</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="password" id="gemini-key" placeholder="APIキーを入力" style="flex: 1;">
+                                <button class="btn btn-secondary" onclick="testGeminiConnection()" id="test-api-btn">テスト</button>
+                            </div>
+                            <div id="api-status-result" style="margin-top: 10px; font-size: 13px; display: none; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05);"></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>3. クラウド同期（Google スプレッドシート）</h3>
+                        <div class="gas-guide" style="font-size: 13px; color: var(--text-main); background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 15px; line-height: 1.6;">
+                            <p style="font-weight: 700; color: var(--accent-primary); margin-bottom: 10px; font-size: 15px;">☁️ クラウド同期（Google スプレッドシート）の設定手順</p>
+                            <p>この設定を行うと、スマホやPCなど複数の端末でデータを共有したり、大切な記録を永続的にバックアップできるようになります。</p>
+                            <ol style="margin-left: 20px; margin-top: 10px; display: flex; flex-direction: column; gap: 12px;">
+                                <li><strong>スプレッドシートの準備</strong>: <a href="https://sheets.new" target="_blank" style="color: var(--accent-primary);">新しいスプレッドシート</a>を作成します。</li>
+                                <li><strong>Apps Scriptを開く</strong>: 上部メニューの「拡張機能」から「Apps Script」をクリックします。</li>
+                                <li><strong>コードの貼り付け</strong>: 下の「GASスクリプトをコピー」ボタンを押し、エディタに元からあるコードをすべて消して貼り付けます。</li>
+                                <li><strong>デプロイ（公開）</strong>: 右上の「デプロイ」>「新しいデプロイ」を選択。
+                                    <ul style="margin-left: 20px; font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                                        <li>種類の選択（歯車アイコン）:「ウェブアプリ」</li>
+                                        <li>次のユーザーとして実行:「自分」</li>
+                                        <li>アクセスできるユーザー:「全員」</li>
+                                    </ul>
+                                </li>
+                                <li><strong>認証</strong>: 「アクセスを承認」を押し、自分のGoogleアカウントを選択。警告が出た場合は「詳細」>「Nutri-Vision（安全ではないページ）に移動」をクリックします。</li>
+                                <li><strong>URLのコピー</strong>: 表示された「ウェブアプリのURL」をコピーして、以下の欄に貼り付けてください。</li>
+                            </ol>
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; font-size: 12px;">
+                                <i class="ph ph-info"></i> <strong>同期ボタンについて</strong>: 右上の「同期」ボタンを押すと、スプレッドシートに保存されている最新のデータを読み込み、現在の画面に反映させます（端末間のデータ消失を防ぎます）。
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" style="width: 100%; margin-bottom: 15px;" onclick="copyGasScript()">
+                            <i class="ph ph-copy"></i> GASスクリプトをコピー
+                        </button>
+                        <div class="setting-item">
+                            <label>GAS ウェブアプリURL</label>
+                            <input type="text" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 8px;">
+                            <div class="gas-hint" style="font-size: 11px; color: var(--accent-warning); line-height: 1.4;">
+                                ⚠️ <strong>重要</strong>: GASの「デプロイ」設定で、アクセスできるユーザーを「<strong>全員</strong>（Anyone）」にする必要があります。「自分のみ」では通信エラー（CORS）が発生します。
+                            </div>
+                            <div class="troubleshoot-box">
+                                <h5><i class="ph ph-warning-circle"></i> 同期できない（403エラー等）場合</h5>
+                                <ul>
+                                    <li><strong>設定確認</strong>: 「新しいデプロイ」でアクセスできるユーザーを「全員」に設定して公開していますか？</li>
+                                    <li><strong>アカウント競合</strong>: 複数のGoogleアカウントにログインしている場合、エラーになることがあります。シークレットブラウザでお試しください。</li>
+                                    <li><strong>URL確認</strong>: `/dev` で終わるテスト用URLではなく、`/exec` で終わる公開用URLを使用していますか？</li>
+                                    <li><strong>最終手段</strong>: 以前のGASコードをすべて消し、最新版を貼り付けて再デプロイしてください。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group transfer-group" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <h3 style="color: var(--accent-primary);"><i class="ph ph-device-mobile"></i> スマホへ設定を転送</h3>
+                        <p class="help-text" style="margin-bottom:12px;">
+                            スマホにGASのURLを打ち込むのは大変です。このボタンでQRコードを表示し、スマホのカメラで読み取るだけで設定を引き継げます。
+                        </p>
+                        <button class="btn btn-primary" onclick="showTransferQR()" style="width: 100%;">
+                           <i class="ph ph-qr-code"></i> スマホ用QRコードを表示
+                        </button>
+                    </div>
+
+                    <div class="settings-group">
+                        <h3>4. データ管理</h3>
+                        <button class="btn btn-secondary" onclick="exportToCSV()"><i class="ph ph-download"></i> CSV形式で全履歴を出力</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- QR Transfer Modal -->
+            <div id="qr-modal" class="modal-overlay hidden">
+                <div class="modal-content qr-content">
+                    <button class="modal-close" onclick="closeQRModal()"><i class="ph ph-x"></i></button>
+                    <h3>スマホでスキャンして設定完了</h3>
+                    <p class="help-text">
+                        このQRコードをスマホの標準カメラで読み取ると、スマホ版の Nutri-Vision が開き、現在の設定が自動で入力されます。
+                    </p>
+                    <div id="qr-container" style="background: white; padding: 20px; border-radius: 12px; margin: 20px auto; width: fit-content;">
+                        <!-- QR Image will appear here -->
+                    </div>
+                    <div class="alert tip" style="margin:0;">
+                        <i class="ph ph-info"></i> スキャン後、スマホで「同期」ボタンを押せばデータも復元されます。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global AI Status Bar -->
+            <div id="analysis-status-global" class="analysis-status-bar hidden">
+                <div class="status-content">
+            <div class="spinner-small"></div>
+            <div style="display: flex; flex-direction: column;">
+                <span id="status-text" style="font-size: 16px; font-weight: 700; color: white;">AIが解析中...</span>
+                <div class="countdown-bar-container" style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 4px;">
+                    <div id="countdown-bar" style="width: 100%; height: 100%; background: var(--accent-primary); border-radius: 2px; transition: width 1s linear;"></div>
+                </div>
+            </div>
+        </div>            <button class="btn-text" onclick="switchTab('meal-log')">表示</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h3>解析結果の確認・編集</h3>
+            <div id="edit-form"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                <button class="btn btn-primary" id="save-entry-btn">保存する</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="activity-modal" class="modal">
+        <div class="modal-content">
+            <h3>運動内容の記録</h3>
+            <div class="setting-item">
+                <label>1. 日付を選択</label>
+                <input type="date" id="act-date">
+            </div>
+            
+            <div class="setting-item" style="margin-top: 15px;">
+                <label>2. 時間帯を選択 (1タップ)</label>
+                <div class="segment-selector" id="act-time-selector">
+                    <div class="segment-btn active" data-val="朝">朝</div>
+                    <div class="segment-btn" data-val="昼">昼</div>
+                    <div class="segment-btn" data-val="夕">夕</div>
+                    <div class="segment-btn" data-val="夜">夜</div>
+                </div>
+            </div>
+
+            <div class="setting-item" style="margin-top: 15px;">
+                <label>3. 種目を選択</label>
+                <select id="act-type">
+                    <option value="walking">ウォーキング</option>
+                    <option value="jogging">ジョギング</option>
+                    <option value="cycling">サイクリング</option>
+                    <option value="cleaning">家事・掃除</option>
+                    <option value="stairs">階段昇降</option>
+                    <option value="training">筋力トレーニング</option>
+                </select>
+            </div>
+
+            <div class="setting-item" style="margin-top: 15px;">
+                <label>4. 実施時間を選択</label>
+                <div class="segment-selector" id="act-duration-selector" style="margin-bottom: 8px;">
+                    <div class="segment-btn" data-val="15">15分</div>
+                    <div class="segment-btn active" data-val="30">30分</div>
+                    <div class="segment-btn" data-val="45">45分</div>
+                    <div class="segment-btn" data-val="60">60分</div>
+                </div>
+                <input type="number" id="act-duration" placeholder="分 (自由入力用)" value="30">
+            </div>
+            <div class="modal-footer" style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                <button class="btn btn-primary" onclick="saveActivity()">運動を記録する</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/js/app.js"></script>
+    <script src="src/js/sheets.js"></script>
+    <script src="src/js/gemini.js"></script>
+    <script src="src/js/charts.js"></script>
+</body>
+</html>
