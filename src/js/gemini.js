@@ -108,9 +108,15 @@ fileInput.addEventListener('change', async (e) => {
             showEditModal(data);
         } catch (err) { 
             console.error(err); 
-            if (!err.message.includes('API key')) alert("解析に失敗しました。"); 
-            // 失敗時はプレビューを隠す
-            document.getElementById('image-preview-container')?.classList.add('preview-hidden');
+            alert("解析に失敗しました。\n詳細: " + err.message); 
+            const container = document.getElementById('image-preview-container');
+            if(container) {
+                container.innerHTML = `<div style="padding: 20px; background: rgba(239,68,68,0.1); border: 2px solid var(--accent-danger); border-radius: var(--radius-md);">
+                    <h4 style="color: var(--accent-danger); margin-bottom: 10px;">解析に失敗しました</h4>
+                    <p style="font-size: 13px; color: var(--text-main); word-break: break-all;">${err.message}</p>
+                </div>`;
+                container.classList.remove('preview-hidden');
+            }
         }
     };
     reader.readAsDataURL(file);
