@@ -170,6 +170,14 @@
 
                 <!-- Settings Tab -->
                 <section id="settings-tab" class="tab-pane">
+                    <div id="onboarding-guide" class="onboarding-banner hidden">
+                        <div class="banner-icon"><i class="ph-duotone ph-sparkle"></i></div>
+                        <div class="banner-body">
+                            <h4>Welcome to Nutri-Vision!</h4>
+                            <p>最初に使用を開始するための3つのステップを設定しましょう。PCの設定情報は、このページの下部にあるQRコードでスマホへ簡単に引き継げます。</p>
+                        </div>
+                    </div>
+
                     <div class="settings-group">
                         <h3>1. パーソナルプロフィール（推奨摂取量の計算）</h3>
                         <div class="settings-form-grid" style="display: flex; flex-direction: column; gap: 20px;">
@@ -285,11 +293,49 @@
                         </div>
                     </div>
 
+                    <div class="settings-group transfer-group" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <h3 style="color: var(--accent-primary);"><i class="ph ph-device-mobile"></i> スマホへ設定を転送</h3>
+                        <p class="help-text" style="margin-bottom:12px;">
+                            スマホにGASのURLを打ち込むのは大変です。このボタンでQRコードを表示し、スマホのカメラで読み取るだけで設定を引き継げます。
+                        </p>
+                        <button class="btn btn-primary" onclick="showTransferQR()" style="width: 100%;">
+                           <i class="ph ph-qr-code"></i> スマホ用QRコードを表示
+                        </button>
+                    </div>
+
                     <div class="settings-group">
                         <h3>4. データ管理</h3>
                         <button class="btn btn-secondary" onclick="exportToCSV()"><i class="ph ph-download"></i> CSV形式で全履歴を出力</button>
                     </div>
+
+                    <div id="finish-setup-container" class="settings-group" style="border: 2px solid var(--accent-success); background: rgba(16, 185, 129, 0.05); margin-top: 30px;">
+                        <button class="btn btn-primary" onclick="finishSetup()" style="width: 100%; background: var(--accent-success);">
+                            <i class="ph ph-check-circle"></i> セットアップを完了して開始する
+                        </button>
+                    </div>
+
+                    <div class="version-tag">
+                        Nutri-Vision Ver 1.0<br>
+                        <span>Powered by Gemini & Google Cloud</span>
+                    </div>
                 </section>
+            </div>
+
+            <!-- QR Transfer Modal -->
+            <div id="qr-modal" class="modal-overlay hidden">
+                <div class="modal-content qr-content">
+                    <button class="modal-close" onclick="closeQRModal()"><i class="ph ph-x"></i></button>
+                    <h3>スマホでスキャンして設定完了</h3>
+                    <p class="help-text">
+                        このQRコードをスマホの標準カメラで読み取ると、スマホ版の Nutri-Vision が開き、現在の設定が自動で入力されます。
+                    </p>
+                    <div id="qr-container" style="background: white; padding: 20px; border-radius: 12px; margin: 20px auto; width: fit-content;">
+                        <!-- QR Image will appear here -->
+                    </div>
+                    <div class="alert tip" style="margin:0;">
+                        <i class="ph ph-info"></i> スキャン後、スマホで「同期」ボタンを押せばデータも復元されます。
+                    </div>
+                </div>
             </div>
 
             <!-- Global AI Status Bar -->

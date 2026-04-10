@@ -22,10 +22,10 @@ function initGSI() {
             accessToken = tokenResponse.access_token;
             state.isLoggedIn = true;
             console.log('Login success');
-            
+
             // Fetch User Info
             fetchUserInfo();
-            
+
             // Initialize Sheets
             if (window.initSheets) initSheets();
         },
@@ -39,13 +39,13 @@ async function fetchUserInfo() {
         headers: { Authorization: `Bearer ${accessToken}` }
     });
     const userInfo = await resp.json();
-    
+
     state.user = {
         name: userInfo.name,
         email: userInfo.email,
         picture: userInfo.picture
     };
-    
+
     updateUserUI();
     document.getElementById('login-btn').textContent = '接続済み';
     document.getElementById('login-btn').classList.replace('btn-secondary', 'btn-primary');
@@ -63,5 +63,5 @@ document.getElementById('login-btn').addEventListener('click', handleLogin);
 window.onload = () => {
     // Scripts are loaded via index.html (async/defer)
     // We wait a bit or use script onload events
-    setTimeout(initGSI, 1000); 
+    setTimeout(initGSI, 1000);
 };

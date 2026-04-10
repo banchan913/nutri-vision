@@ -7,6 +7,7 @@ const state = {
     geminiKey: localStorage.getItem('gemini_api_key') || '',
     gasUrl: localStorage.getItem('gas_url') || '',
     detectedModel: localStorage.getItem('detected_model') || 'gemini-1.5-flash',
+    setupComplete: localStorage.getItem('nutri_setup_complete') === 'true',
     viewDate: new Date(),
     isUpdating: false
 };
@@ -34,6 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initApp() {
     try {
+        // [New] URLハッシュによる設定復元魔法
+        checkUrlHashForConfig();
+
+        // [New] 初回ガイドの判定
+        checkOnboarding();
+
         initNavigation();
         initSettings();
         initProfileFields();
@@ -43,6 +50,79 @@ function initApp() {
     } catch (e) {
         console.error("Master, initialization failed:", e);
     }
+}
+
+function checkOnboarding() {
+    if (!state.setupComplete) {
+        state.activeTab = 'settings';
+        // HTML要素の制御は renderApp で行う
+    }
+}
+
+function finishSetup() {
+    state.setupComplete = true;
+    localStorage.setItem('nutri_setup_complete', 'true');
+    switchTab('dashboard');
+    alert('【セットアップ完了】Nutri-Vision の全機能が解放されました。幸運を！');
+}
+
+function checkUrlHashForConfig() {
+    const hash = window.location.hash;
+    if (hash && hash.includes('gas=')) {
+        try {
+            const params = new URLSearchParams(hash.substring(1));
+            const gas = params.get('gas');
+            const gemini = params.get('gemini');
+            
+            if (gas) {
+                state.gasUrl = gas;
+                localStorage.setItem('gas_url', gas);
+            }
+            if (gemini) {
+                state.geminiKey = gemini;
+                localStorage.setItem('gemini_api_key', gemini);
+            }
+            
+            // 復元後はURLを綺麗にする
+            window.history.replaceState(null, null, window.location.pathname);
+            alert('【魔法発動】PCからの設定情報をスマホに引き継ぎました！');
+        } catch(e) { console.error('Hash config restore failed', e); }
+    }
+}
+
+function showTransferQR() {
+    const gas = state.gasUrl;
+    const gemini = state.geminiKey;
+    
+    if (!gas) {
+        alert('先にGASのURLを設定してください。');
+        return;
+    }
+    
+    // [Phase 14] 公開URL（GitHub Pages）を優先するように指示
+    let baseUrl = window.location.href.split('#')[0];
+    if (baseUrl.startsWith('file:')) {
+        baseUrl = 'https://banchan913.github.io/nutri-vision/';
+    }
+    
+    const params = new URLSearchParams({ gas: gas, gemini: gemini });
+    const transferUrl = baseUrl + '#' + params.toString();
+    
+    const qrContainer = document.getElementById('qr-container');
+    const qrModal = document.getElementById('qr-modal');
+    
+    // コンテンツの文言も更新
+    const modalTitle = qrModal.querySelector('h3');
+    if (modalTitle) modalTitle.textContent = 'スマホに設定を引き継ぐ';
+    
+    // QRコードAPIを利用
+    qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(transferUrl)}" alt="Transfer QR" style="display:block; width:220px; height:220px;">`;
+    qrModal.classList.remove('hidden');
+}
+
+
+function closeQRModal() {
+    document.getElementById('qr-modal').classList.add('hidden');
 }
 
 function renderApp() {
@@ -55,6 +135,10 @@ function renderApp() {
     
     if (state.activeTab === 'history') renderHistoryList();
     if (window.updateCharts) window.updateCharts();
+
+    // オンボーディングバナーの表示制御
+    const guide = document.getElementById('onboarding-guide');
+    if (guide) guide.classList.toggle('hidden', state.setupComplete);
     
     state.isUpdating = false;
 }
