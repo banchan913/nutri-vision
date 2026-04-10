@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initApp() {
     try {
+        translatePage(); // [New] i18n
         // [New] URLハッシュによる設定復元魔法
         checkUrlHashForConfig();
 
@@ -66,7 +67,7 @@ function finishSetup() {
     state.setupComplete = true;
     localStorage.setItem('nutri_setup_complete', 'true');
     switchTab('dashboard');
-    alert('【セットアップ完了】Nutri-Vision の全機能が解放されました。幸運を！');
+    alert(t('msg_setup_done'));
 }
 
 function checkUrlHashForConfig() {
@@ -88,7 +89,7 @@ function checkUrlHashForConfig() {
             
             // 復元後はURLを綺麗にする
             window.history.replaceState(null, null, window.location.pathname);
-            alert('【魔法発動】PCからの設定情報をスマホに引き継ぎました！');
+            alert(t('msg_qr_restored'));
         } catch(e) { console.error('Hash config restore failed', e); }
     }
 }
@@ -116,7 +117,7 @@ function showTransferQR() {
     
     // コンテンツの文言も更新
     const modalTitle = qrModal.querySelector('h3');
-    if (modalTitle) modalTitle.textContent = 'スマホに設定を引き継ぐ';
+    if (modalTitle) modalTitle.textContent = t('set_transfer_title');
     
     // QRコードAPIを利用
     qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(transferUrl)}" alt="Transfer QR" style="display:block; width:220px; height:220px;">`;
@@ -298,7 +299,7 @@ function saveProfile(showAlert = true) {
         pal: parseFloat(document.getElementById('profile-pal').value) || 1.75
     };
     setState({ profile });
-    if (showAlert) alert('プロフィールを保存しました。');
+    if (showAlert) alert(t('msg_saved_prof'));
 }
 
 function initSettings() {
@@ -345,11 +346,11 @@ function saveActivity() {
     setState({ activities: newActivities });
     
     closeModal();
-    alert(`${activity.typeName} を記録しました。消費: ${burned} kcal`);
+    alert(`${activity.typeName} ${t('msg_saved_act')} ${burned} kcal`);
 }
 
 function deleteActivity(id) {
-    if (!confirm('この運動記録を削除しますか？')) return;
+    if (!confirm(t('msg_delete_act'))) return;
     const activities = state.activities.filter(a => a.id !== id);
     setState({ activities });
 }
@@ -361,7 +362,7 @@ function initNavigation() {
     document.getElementById('prev-month')?.addEventListener('click', () => { state.viewDate.setMonth(state.viewDate.getMonth() - 1); renderCalendar(); });
     document.getElementById('next-month')?.addEventListener('click', () => { state.viewDate.setMonth(state.viewDate.getMonth() + 1); renderCalendar(); });
     document.getElementById('sync-btn')?.addEventListener('click', async () => { 
-        if (!state.gasUrl) { alert('設定画面でGASのURLを入力してください。'); return; }
+        if (!state.gasUrl) { alert(t('msg_need_gas')); return; }
         const btn = document.getElementById('sync-btn');
         const icon = btn.querySelector('i');
         icon.classList.add('ph-spin');
@@ -403,19 +404,17 @@ function initNavigation() {
                 
                 setState({ history: newHistory, activities: newActivities });
                 
-                let msg = 'クラウド同期が完了しました！';
+                let msg = t('msg_sync_done');
                 if (downloadedCount > 0 || uploadedCount > 0) {
-                    msg += `\n・読み込み: ${downloadedCount}件\n・復元(送信): ${uploadedCount}件`;
-                } else {
-                    msg += '\n既に最新の状態です。';
+                    msg += `\n- Sync: ${downloadedCount}\n- Restore: ${uploadedCount}`;
                 }
                 alert(msg);
             } else {
-                alert('同期に失敗しました。URLや設定を確認してください。');
+                alert(t('msg_sync_fail'));
             }
         } catch (e) {
             console.error('Sync failed', e);
-            alert('同期中にエラーが発生しました。');
+            alert(t('msg_sync_error'));
         } finally {
             icon.classList.remove('ph-spin');
             btn.disabled = false;
@@ -438,9 +437,9 @@ function renderCalendar() {
     if (!grid || !monthTitle) return;
     const year = state.viewDate.getFullYear();
     const month = state.viewDate.getMonth();
-    monthTitle.textContent = `${year}年 ${month + 1}月`;
+    monthTitle.textContent = currentLang === 'ja' ? `${year}年 ${month + 1}月` : `${new Date(year, month).toLocaleString('en-us', { month: 'short' })} ${year}`;
     grid.innerHTML = '';
-    ['日', '月', '火', '水', '木', '金', '土'].forEach(d => { const h = document.createElement('div'); h.className = 'calendar-day-label'; h.textContent = d; grid.appendChild(h); });
+    [t('day_sun'), t('day_mon'), t('day_tue'), t('day_wed'), t('day_thu'), t('day_fri'), t('day_sat')].forEach(d => { const h = document.createElement('div'); h.className = 'calendar-day-label'; h.textContent = d; grid.appendChild(h); });
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const historyMap = {}; state.history.forEach(h => { const d = toCanonical(h.date); if (!historyMap[d]) historyMap[d] = []; historyMap[d].push(h); });
@@ -484,17 +483,17 @@ function renderDayDetailsByDate(dateKey, label) {
     const meals = state.history.filter(h => toCanonical(h.date) === targetKey);
     const acts = state.activities.filter(a => toCanonical(a.date) === targetKey);
     const panel = document.getElementById('day-meals-list'); if (!panel) return;
-    if (meals.length === 0 && acts.length === 0) { panel.innerHTML = `<p class="help-text">${label} の記録はありません。</p>`; return; }
+    if (meals.length === 0 && acts.length === 0) { panel.innerHTML = `<p class="help-text">${label} ${t('cal_no_record')}</p>`; return; }
     const mTotal = meals.reduce((s, e) => ({ cal: s.cal + e.calories, p: s.p + e.p, f: s.f + e.f, c: s.c + e.c, salt: s.salt + (e.salt || 0) }), { cal: 0, p: 0, f: 0, c: 0, salt: 0 });
     const aBurn = acts.reduce((s, a) => s + a.calories, 0);
     panel.innerHTML = `
         <div class="day-summary-banner detailed">
-            <div class="main-total">摂取: <strong>${mTotal.cal} kcal</strong> / 消費: <strong style="color:var(--accent-success)">${aBurn} kcal</strong></div>
+            <div class="main-total">${t('cal_intake')}: <strong>${mTotal.cal} kcal</strong> / ${t('cal_burn')}: <strong style="color:var(--accent-success)">${aBurn} kcal</strong></div>
             <div class="sub-total">
-                <span>たんぱく質: ${mTotal.p.toFixed(1)}g</span>
-                <span>脂質: ${mTotal.f.toFixed(1)}g</span>
-                <span>炭水化物: ${mTotal.c.toFixed(1)}g</span><br>
-                <span style="color:var(--accent-warning)">食塩相当量: ${mTotal.salt.toFixed(1)}g</span>
+                <span>${t('dash_protein')}: ${mTotal.p.toFixed(1)}g</span>
+                <span>${t('dash_fat')}: ${mTotal.f.toFixed(1)}g</span>
+                <span>${t('dash_carbs')}: ${mTotal.c.toFixed(1)}g</span><br>
+                <span style="color:var(--accent-warning)">${t('dash_salt_today')}: ${mTotal.salt.toFixed(1)}g</span>
             </div>
         </div>
         <h4 style="margin: 15px 0 10px; font-size:14px; color:var(--text-secondary);">食事の記録</h4>
@@ -507,10 +506,10 @@ function renderDayDetailsByDate(dateKey, label) {
                     </div>
                     <div class="h-stats-grid">
                         <div style="grid-column: span 2; font-weight:700;">${e.calories} kcal</div>
-                        <div>たんぱく質: ${e.p}g</div>
-                        <div>脂質: ${e.f}g</div>
-                        <div>炭水化物: ${e.c}g</div>
-                        <div>食塩相当量: ${e.salt || 0}g</div>
+                        <div>${t('dash_protein')}: ${e.p}g</div>
+                        <div>${t('dash_fat')}: ${e.f}g</div>
+                        <div>${t('dash_carbs')}: ${e.c}g</div>
+                        <div>${t('dash_salt_today')}: ${e.salt || 0}g</div>
                     </div>
                 </div>
             `).join('')}
@@ -541,8 +540,8 @@ function renderHistoryList() {
             </div>
             <div class="h-stats-grid">
                 ${h.type === 'meal' 
-                    ? `<div style="grid-column: span 2; font-weight:700;">${h.calories} kcal</div><div>たんぱく質: ${h.p}g</div><div>脂質: ${h.f}g</div><div>炭水化物: ${h.c}g</div><div>食塩相当量: ${h.salt || 0}g</div>` 
-                    : `<div>消費: <strong>${h.calories}</strong> kcal</div><div>${h.duration} 分</div>`
+                    ? `<div style="grid-column: span 2; font-weight:700;">${h.calories} kcal</div><div>${t('dash_protein')}: ${h.p}g</div><div>${t('dash_fat')}: ${h.f}g</div><div>${t('dash_carbs')}: ${h.c}g</div><div>${t('dash_salt_today')}: ${h.salt || 0}g</div>` 
+                    : `<div>${t('cal_burn')}: <strong>${h.calories}</strong> kcal</div><div>${h.duration} min</div>`
                 }
             </div>
         </div>
@@ -556,7 +555,7 @@ function saveEntry(entry) {
 }
 
 function deleteEntry(id, date, time, name) {
-    if (!confirm(`「${name}」の記録を削除しますか？`)) return;
+    if (!confirm(t('msg_delete_meal'))) return;
     let history;
     if (id) {
         history = state.history.filter(h => h.id !== id);
@@ -572,7 +571,7 @@ function deleteEntry(id, date, time, name) {
     setState({ history });
 }
 
-function updateUserStatus() { const statusText = document.querySelector('.user-email'); if (statusText) statusText.textContent = state.gasUrl ? 'クラウド同期モード' : '端末保存モード'; }
+function updateUserStatus() { const statusText = document.querySelector('.user-email'); if (statusText) statusText.textContent = state.gasUrl ? t('cloud_mode') : t('local_mode'); }
 
 function openModal(id) { 
     const modal = document.getElementById(id); modal.style.display = 'flex'; 
@@ -593,20 +592,20 @@ function closeModal() {
 document.getElementById('quick-add-btn')?.addEventListener('click', () => switchTab('meal-log'));
 
 async function testGeminiConnection() {
-    const key = state.geminiKey; if (!key) { alert('先にAPIキーを入力してください。'); return; }
-    const resDiv = document.getElementById('api-status-result'); resDiv.style.display = 'block'; resDiv.innerHTML = '接続確認中...';
+    const key = state.geminiKey; if (!key) { alert(t('msg_need_apikey')); return; }
+    const resDiv = document.getElementById('api-status-result'); resDiv.style.display = 'block'; resDiv.innerHTML = currentLang === 'ja' ? '接続確認中...' : 'Checking...';
     try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
         const data = await res.json(); if (data.error) throw new Error(data.error.message);
         const flashModels = (data.models || []).filter(m => m.name.includes('flash')).sort((a,b)=>a.name.includes('1.5')?-1:1);
-        resDiv.innerHTML = '接続成功！利用可能なモデル：<br><br>';
+        resDiv.innerHTML = currentLang === 'ja' ? '接続成功！利用可能なモデル：<br><br>' : 'Success! Available models:<br><br>';
         flashModels.forEach(m => {
             const mName = m.name.replace('models/', ''); const isRec = mName.includes('lite') || mName.includes('1.5');
-            const mBtn = document.createElement('button'); mBtn.className = isRec ? 'btn btn-recommended' : 'btn btn-secondary'; mBtn.style.margin = '4px'; mBtn.textContent = isRec ? `${mName}（推奨）` : mName;
+            const mBtn = document.createElement('button'); mBtn.className = isRec ? 'btn btn-recommended' : 'btn btn-secondary'; mBtn.style.margin = '4px'; mBtn.textContent = isRec ? `${mName}${currentLang === 'ja' ? '（推奨）' : ' (Rec)'}` : mName;
             if (mName === state.detectedModel) mBtn.style.boxShadow = '0 0 0 2px var(--accent-primary)';
             mBtn.onclick = () => { state.detectedModel = mName; localStorage.setItem('detected_model', mName); testGeminiConnection(); }; resDiv.appendChild(mBtn);
         });
-    } catch (e) { resDiv.innerHTML = `接続失敗: ${e.message}`; }
+    } catch (e) { resDiv.innerHTML = `${currentLang === 'ja' ? '接続失敗' : 'Failed'}: ${e.message}`; }
 }
 async function copyGasScript() {
     const s = `function doGet(e) {
@@ -694,10 +693,12 @@ function sendResponse(obj, e) {
   }
   return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
 }`;
-    navigator.clipboard.writeText(s).then(() => alert('【双方向同期・最終版】同期用スクリプトをコピーしました！スプレッドシートのGASエディタで以前のコードをすべて消して貼り付け、「デプロイ」→「新しいデプロイ」から公開してください。'));
+    navigator.clipboard.writeText(s).then(() => alert(t('msg_copied_gas')));
 }
 function exportToCSV() {
-    const h = ['日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重'];
+    const isJa = currentLang === 'ja';
+    const h = isJa ? ['日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重']
+                   : ['Date', 'Time', 'Item', 'Calories', 'Protein', 'Fat', 'Carbs', 'Salt', 'Weight'];
     const r = state.history.map(x => [x.date, x.time, x.name, x.calories, x.p, x.f, x.c, x.salt || 0, x.weight || '']);
     const c = "\uFEFF" + [h.join(','), ...r.map(x => x.join(','))].join('\n');
     const b = new Blob([c], { type: 'text/csv;charset=utf-8;' }); const l = document.createElement("a"); l.href = URL.createObjectURL(b); l.download = `NutriVision_${new Date().toISOString().slice(0,10)}.csv`; l.click();

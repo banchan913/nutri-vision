@@ -1,0 +1,296 @@
+const currentLang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+
+const translations = {
+    ja: {
+        // Navigation & General
+        "nav_dashboard": "ダッシュボード",
+        "nav_calendar": "カレンダー",
+        "nav_record": "記録する",
+        "nav_analysis": "トレンド分析",
+        "nav_history": "全履歴",
+        "nav_settings": "設定",
+        "guest_user": "ゲストユーザー",
+        "local_mode": "端末保存モード",
+        "cloud_mode": "クラウド同期モード",
+        "btn_sync": "同期",
+        "btn_record": "記録",
+        "btn_cancel": "キャンセル",
+        "btn_save": "保存する",
+
+        // Dashboard
+        "dash_cal_today": "摂取エネルギー (今日)",
+        "dash_pfc": "三大栄養素バランス",
+        "dash_protein": "たんぱく質",
+        "dash_fat": "脂質",
+        "dash_carbs": "炭水化物",
+        "dash_salt_today": "食塩相当量 (今日)",
+        "dash_burn_today": "消費エネルギー (今日)",
+        "dash_burn_ext": "運動による消費",
+        "target_prefix": "目標: ",
+        "chart1_title": "1. カロリー収支：摂取 vs 目標",
+        "chart1_desc": "目標を越えていないか、毎日の食事量を確認します。",
+        "chart2_title": "2. 三大栄養バランスの質",
+        "chart2_desc": "理想の比率（たんぱく質:15% 脂質:25% 炭水化物:60%）に近いほど健康的です。",
+        "chart3_title": "3. 体重の推移トレンド",
+        "chart3_desc": "食事と運動による、なだらかな体重の変化を追跡します。",
+
+        // Calendar
+        "cal_selected": "選択した日の記録",
+        "cal_select_help": "日付を選択すると表示されます",
+        "cal_no_record": "の記録はありません。",
+        "cal_intake": "摂取",
+        "cal_burn": "消費",
+
+        // Meal Log
+        "meal_mode_photo": "食事写真解析",
+        "meal_mode_ocr": "栄養ラベル解析",
+        "meal_upload_desc": "画像をドラッグ＆ドロップ、またはクリックして撮影",
+        "meal_btn_photo": "写真を選択",
+        "meal_analyzing": "解析中の写真",
+        "meal_exercise_help": "運動をした場合はこちら",
+        "meal_btn_exercise": "運動を記録する",
+
+        // Analysis
+        "ana_title": "栄養摂取トレンド & 未来予想",
+        "ana_expected_weight": "1ヶ月後の予想体重",
+        "ana_weekly_avg": "今週の平均摂取",
+        "ana_achievement": "目標達成率",
+
+        // Settings
+        "set_guide_title": "Welcome to Nutri-Vision!",
+        "set_guide_desc": "最初に使用を開始するための3つのステップを設定しましょう。PCの設定情報は、このページの下部にあるQRコードでスマホへ簡単に引き継げます。",
+        "set_prof_title": "1. パーソナルプロフィール（推奨摂取量の計算）",
+        "set_gender": "性別",
+        "set_male": "男性",
+        "set_female": "女性",
+        "set_age": "年齢 (歳)",
+        "set_height": "身長 (cm)",
+        "set_weight": "体重 (kg)",
+        "set_pal_title": "基本の身体活動レベル (PAL)",
+        "set_pal_desc": "<strong>低い</strong>: 座位中心<br><strong>ふつう</strong>: 軽い運動含む<br><strong>高い</strong>: 活発な運動習慣あり",
+        "set_pal_low": "低い (1.5)",
+        "set_pal_mid": "ふつう (1.75)",
+        "set_pal_hi": "高い (2.0)",
+        "set_btn_calc": "設定を保存して計算する",
+        "set_ai_title": "2. AI解析の設定",
+        "set_ai_desc": "Gemini APIキーが必要です。",
+        "set_ai_key": "Gemini APIキー",
+        "set_btn_test": "テスト",
+        "set_sync_title": "3. クラウド同期（Google スプレッドシート）",
+        "set_sync_btn_copy": "GASスクリプトをコピー",
+        "set_transfer_title": "スマホへ設定を転送",
+        "set_transfer_desc": "スマホにGASのURLを打ち込むのは大変です。このボタンでQRコードを表示し、スマホのカメラで読み取るだけで設定を引き継げます。",
+        "set_btn_qr": "スマホ用QRコードを表示",
+        "set_export_title": "4. データ管理",
+        "set_btn_export": "CSV形式で全履歴を出力",
+        "set_btn_finish": "セットアップを完了して開始する",
+
+        // Modals & Alerts
+        "modal_edit_title": "解析結果の確認・編集",
+        "modal_act_title": "運動内容の記録",
+        "modal_act_step1": "1. 日付を選択",
+        "modal_act_step2": "2. 時間帯を選択 (1タップ)",
+        "modal_act_step3": "3. 種目を選択",
+        "modal_act_step4": "4. 実施時間を選択",
+        "act_morning": "朝",
+        "act_noon": "昼",
+        "act_evening": "夕",
+        "act_night": "夜",
+        "act_walking": "ウォーキング",
+        "act_jogging": "ジョギング",
+        "act_cycling": "サイクリング",
+        "act_cleaning": "家事・掃除",
+        "act_stairs": "階段昇降",
+        "act_training": "筋力トレーニング",
+        "msg_setup_done": "【セットアップ完了】Nutri-Vision の全機能が解放されました。幸運を！",
+        "msg_qr_restored": "【魔法発動】PCからの設定情報をスマホに引き継ぎました！",
+        "msg_saved_prof": "プロフィールを保存しました。",
+        "msg_saved_act": "を記録しました。消費:",
+        "msg_delete_act": "この運動記録を削除しますか？",
+        "msg_need_gas": "設定画面でGASのURLを入力してください。",
+        "msg_sync_done": "クラウド同期が完了しました！",
+        "msg_sync_fail": "同期に失敗しました。URLや設定を確認してください。",
+        "msg_sync_error": "同期中にエラーが発生しました。",
+        "msg_delete_meal": "の記録を削除しますか？",
+        "msg_need_apikey": "先にAPIキーを入力してください。",
+        "msg_copied_gas": "同期用スクリプトをコピーしました！",
+        
+        // Gemini
+        "ai_status_analyzing": "AIが解析中...",
+        "ai_status_almost": "間もなく完了します...",
+        "ai_status_done": "解析完了！結果を表示します...",
+        "ai_err_no_ans": "AIからの有効な回答が得られませんでした。",
+        "ai_err_fail": "解析に失敗しました。",
+        
+        // Days
+        "day_sun": "日", "day_mon": "月", "day_tue": "火", "day_wed": "水", "day_thu": "木", "day_fri": "金", "day_sat": "土",
+        
+        // Edit Form
+        "edit_step1": "1. 記録日を選択",
+        "edit_name": "食品名・料理名",
+        "edit_weight": "今日の体重 (kg / 任意)",
+        "edit_step2": "2. 食事区分を選択 (1タップ)",
+        "edit_meal_break": "朝食",
+        "edit_meal_lunch": "昼食",
+        "edit_meal_dinner": "夕食",
+        "edit_meal_snack": "間食",
+        "edit_meal_night": "夜食",
+        "edit_style": "食事のスタイル (自炊なら栄養素を自動調整)",
+        "edit_style_out": "外食・市販",
+        "edit_style_in": "自炊 (脂質・塩分控えめ)",
+        "edit_step3": "3. 料理名と各栄養素 (必要なら編集)",
+        "edit_saved": "記録を保存しました。"
+    },
+    en: {
+        "nav_dashboard": "Dashboard",
+        "nav_calendar": "Calendar",
+        "nav_record": "Log Meal",
+        "nav_analysis": "Analysis",
+        "nav_history": "History",
+        "nav_settings": "Settings",
+        "guest_user": "Guest User",
+        "local_mode": "Local Storage Mode",
+        "cloud_mode": "Cloud Sync Mode",
+        "btn_sync": "Sync",
+        "btn_record": "Log",
+        "btn_cancel": "Cancel",
+        "btn_save": "Save",
+
+        "dash_cal_today": "Energy Intake (Today)",
+        "dash_pfc": "Macronutrients Balance",
+        "dash_protein": "Protein",
+        "dash_fat": "Fat",
+        "dash_carbs": "Carbs",
+        "dash_salt_today": "Salt Equivalent (Today)",
+        "dash_burn_today": "Energy Burned (Today)",
+        "dash_burn_ext": "Burned by Exercise",
+        "target_prefix": "Target: ",
+        "chart1_title": "1. Calorie Balance: Intake vs Target",
+        "chart1_desc": "Check your daily meal limit.",
+        "chart2_title": "2. Macronutrient Quality",
+        "chart2_desc": "Healthy ratios (Protein:15% Fat:25% Carbs:60%).",
+        "chart3_title": "3. Weight Trend",
+        "chart3_desc": "Track smooth weight changes.",
+
+        "cal_selected": "Selected Day Log",
+        "cal_select_help": "Select a date to view",
+        "cal_no_record": "No record for",
+        "cal_intake": "Intake",
+        "cal_burn": "Burned",
+
+        "meal_mode_photo": "Photo AI",
+        "meal_mode_ocr": "Nutrition Label OCR",
+        "meal_upload_desc": "Drag & drop image or click to snap",
+        "meal_btn_photo": "Select Photo",
+        "meal_analyzing": "Analyzing Photo...",
+        "meal_exercise_help": "Log your exercise here",
+        "meal_btn_exercise": "Log Exercise",
+
+        "ana_title": "Nutrition Trend & Prediction",
+        "ana_expected_weight": "Expected Weight (Next Month)",
+        "ana_weekly_avg": "Weekly Avg Intake",
+        "ana_achievement": "Target Achievement",
+
+        "set_guide_title": "Welcome to Nutri-Vision!",
+        "set_guide_desc": "Complete these 3 steps to start. You can transfer PC settings to mobile via QR code below.",
+        "set_prof_title": "1. Personal Profile (Target Calc)",
+        "set_gender": "Gender",
+        "set_male": "Male",
+        "set_female": "Female",
+        "set_age": "Age",
+        "set_height": "Height (cm)",
+        "set_weight": "Weight (kg)",
+        "set_pal_title": "Physical Activity Level (PAL)",
+        "set_pal_desc": "<strong>Low</strong>: Sedentary<br><strong>Mid</strong>: Light active<br><strong>High</strong>: Active",
+        "set_pal_low": "Low (1.5)",
+        "set_pal_mid": "Mid (1.75)",
+        "set_pal_hi": "High (2.0)",
+        "set_btn_calc": "Save & Calculate",
+        "set_ai_title": "2. AI API Settings",
+        "set_ai_desc": "Gemini API Key is required.",
+        "set_ai_key": "Gemini API Key",
+        "set_btn_test": "Test",
+        "set_sync_title": "3. Cloud Sync (Google Sheets)",
+        "set_sync_btn_copy": "Copy GAS Script",
+        "set_transfer_title": "Transfer to Mobile",
+        "set_transfer_desc": "Scan QR to quickly apply settings to mobile.",
+        "set_btn_qr": "Show QR Code",
+        "set_export_title": "4. Data Management",
+        "set_btn_export": "Export to CSV",
+        "set_btn_finish": "Complete Setup & Start",
+
+        "modal_edit_title": "Verify & Edit Result",
+        "modal_act_title": "Log Exercise",
+        "modal_act_step1": "1. Select Date",
+        "modal_act_step2": "2. Select Time",
+        "modal_act_step3": "3. Select Type",
+        "modal_act_step4": "4. Duration",
+        "act_morning": "Morning",
+        "act_noon": "Noon",
+        "act_evening": "Evening",
+        "act_night": "Night",
+        "act_walking": "Walking",
+        "act_jogging": "Jogging",
+        "act_cycling": "Cycling",
+        "act_cleaning": "Housework",
+        "act_stairs": "Stairs",
+        "act_training": "Workout",
+        "msg_setup_done": "Setup complete! All features unlocked.",
+        "msg_qr_restored": "Settings restored from QR code!",
+        "msg_saved_prof": "Profile saved.",
+        "msg_saved_act": "logged. Burned:",
+        "msg_delete_act": "Delete this activity?",
+        "msg_need_gas": "Please enter GAS URL in settings.",
+        "msg_sync_done": "Cloud Sync Complete!",
+        "msg_sync_fail": "Sync failed. Check URL.",
+        "msg_sync_error": "Error during sync.",
+        "msg_delete_meal": "Delete this meal?",
+        "msg_need_apikey": "Enter API Key first.",
+        "msg_copied_gas": "GAS Script Copied!",
+        
+        "ai_status_analyzing": "AI is analyzing...",
+        "ai_status_almost": "Almost done...",
+        "ai_status_done": "Done! Showing results...",
+        "ai_err_no_ans": "No valid response from AI.",
+        "ai_err_fail": "Analysis failed.",
+        
+        "day_sun": "Sun", "day_mon": "Mon", "day_tue": "Tue", "day_wed": "Wed", "day_thu": "Thu", "day_fri": "Fri", "day_sat": "Sat",
+        
+        "edit_step1": "1. Select Date",
+        "edit_name": "Meal Name",
+        "edit_weight": "Today's Weight (Optional)",
+        "edit_step2": "2. Category",
+        "edit_meal_break": "Breakfast",
+        "edit_meal_lunch": "Lunch",
+        "edit_meal_dinner": "Dinner",
+        "edit_meal_snack": "Snack",
+        "edit_meal_night": "Late Night",
+        "edit_style": "Style (Auto-adjusts for home cooking)",
+        "edit_style_out": "Eating Out / Store",
+        "edit_style_in": "Home Cooked (Low fat/salt)",
+        "edit_step3": "3. Nutrients",
+        "edit_saved": "Record saved."
+    }
+};
+
+function t(key) {
+    return translations[currentLang][key] || key;
+}
+
+function translatePage() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        
+        // もし要素内にアイコンなどのHTMLが含まれている場合は保持する方針
+        // 簡単のために今回は innerHTML を上書き可能なものは上書きし、
+        // そうでないものは textContent、または placeholder にする
+        if (el.tagName === 'INPUT' && el.type === 'text') {
+            el.placeholder = t(key);
+        } else {
+            // もし中に <i> などのタグがあれば、最初の子テキストノードだけを変えるのが丁寧だが
+            // 今回は単純に data-i18n 属性が付いている要素の textContent を置換するか、
+            // HTML要素構造を壊さないように span で囲むなど index.html 側で対処する
+            el.innerHTML = t(key);
+        }
+    });
+}

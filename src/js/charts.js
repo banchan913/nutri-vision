@@ -60,8 +60,8 @@ function calculateAndDisplayStats() {
 
     if (calProgress) calProgress.style.width = Math.min((totals.calories / dailyTarget) * 100, 100) + '%';
     if (saltProgress) saltProgress.style.width = Math.min((totals.salt / targets.salt) * 100, 100) + '%';
-    if (calTargetLink) calTargetLink.textContent = `目標: ${dailyTarget} kcal`;
-    if (saltTargetLink) saltTargetLink.textContent = `目標: ${targets.salt.toFixed(1)} g`;
+    if (calTargetLink) calTargetLink.textContent = `${t('target_prefix')}${dailyTarget} kcal`;
+    if (saltTargetLink) saltTargetLink.textContent = `${t('target_prefix')}${targets.salt.toFixed(1)} g`;
 
     const updateCard = (id, val, target, unit, type) => {
         const el = document.getElementById(id); if (!el) return;
@@ -82,7 +82,7 @@ function updateCharts() {
         pRatio: [], fRatio: [], cRatio: [],
         weight: []
     };
-    
+
     for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
@@ -91,7 +91,7 @@ function updateCharts() {
 
         const dayMeals = state.history.filter(h => toCanonical(h.date) === dateStr);
         const dayActs = state.activities.filter(a => toCanonical(a.date) === dateStr);
-        
+
         const intake = dayMeals.reduce((s, e) => s + e.calories, 0);
         datasets.intake.push(intake);
 
@@ -99,11 +99,11 @@ function updateCharts() {
         const dailyTarget = Math.round(getBMR() * parseFloat(state.profile.pal || 1.75)) + totalBurned;
         datasets.target.push(dailyTarget);
 
-        const totalCals = dayMeals.reduce((s,e) => s + e.calories, 0);
+        const totalCals = dayMeals.reduce((s, e) => s + e.calories, 0);
         if (totalCals > 0) {
-            const p = (dayMeals.reduce((s,e) => s + e.p, 0) * 4 / totalCals) * 100;
-            const f = (dayMeals.reduce((s,e) => s + e.f, 0) * 9 / totalCals) * 100;
-            const c = (dayMeals.reduce((s,e) => s + e.c, 0) * 4 / totalCals) * 100;
+            const p = (dayMeals.reduce((s, e) => s + e.p, 0) * 4 / totalCals) * 100;
+            const f = (dayMeals.reduce((s, e) => s + e.f, 0) * 9 / totalCals) * 100;
+            const c = (dayMeals.reduce((s, e) => s + e.c, 0) * 4 / totalCals) * 100;
             datasets.pRatio.push(p); datasets.fRatio.push(f); datasets.cRatio.push(c);
         } else {
             datasets.pRatio.push(0); datasets.fRatio.push(0); datasets.cRatio.push(0);
@@ -128,8 +128,8 @@ function renderIntakeChart(labels, intake, target) {
         data: {
             labels: labels,
             datasets: [
-                { label: '摂取', data: intake, backgroundColor: intake.map((v, i) => v > target[i] ? '#f87171' : '#60a5fa'), borderRadius: 4 },
-                { label: '目標', data: target, backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1, borderRadius: 4 }
+                { label: t('cal_intake'), data: intake, backgroundColor: intake.map((v, i) => v > target[i] ? '#f87171' : '#60a5fa'), borderRadius: 4 },
+                { label: currentLang === 'ja' ? '目標' : 'Target', data: target, backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1, borderRadius: 4 }
             ]
         },
         options: {
@@ -138,8 +138,8 @@ function renderIntakeChart(labels, intake, target) {
                 x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
                 y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
             },
-            plugins: { 
-                legend: { display: false }, 
+            plugins: {
+                legend: { display: false },
                 tooltip: { mode: 'index', intersect: false },
                 // 数値を表示するカスタムプラグイン
                 datalabels: {
@@ -184,9 +184,9 @@ function renderPfcChart(labels, p, f, c) {
         data: {
             labels: labels,
             datasets: [
-                { label: '炭水化物', data: c, fill: true, backgroundColor: 'rgba(251, 146, 60, 0.2)', borderColor: '#fb923c', tension: 0.4 },
-                { label: '脂質', data: f, fill: true, backgroundColor: 'rgba(250, 204, 21, 0.2)', borderColor: '#facc15', tension: 0.4 },
-                { label: 'たんぱく質', data: p, fill: true, backgroundColor: 'rgba(96, 165, 250, 0.2)', borderColor: '#60a5fa', tension: 0.4 }
+                { label: t('dash_carbs'), data: c, fill: true, backgroundColor: 'rgba(251, 146, 60, 0.2)', borderColor: '#fb923c', tension: 0.4 },
+                { label: t('dash_fat'), data: f, fill: true, backgroundColor: 'rgba(250, 204, 21, 0.2)', borderColor: '#facc15', tension: 0.4 },
+                { label: t('dash_protein'), data: p, fill: true, backgroundColor: 'rgba(96, 165, 250, 0.2)', borderColor: '#60a5fa', tension: 0.4 }
             ]
         },
         options: {
@@ -195,7 +195,7 @@ function renderPfcChart(labels, p, f, c) {
                 x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
                 y: { stacked: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => v + '%' } }
             },
-            plugins: { 
+            plugins: {
                 legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } },
                 tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.raw.toFixed(1)}%` } }
             }
@@ -231,7 +231,7 @@ function renderWeightChart(labels, weights) {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{ label: '体重', data: weights, borderColor: '#2dd4bf', backgroundColor: 'rgba(45, 212, 191, 0.1)', fill: true, tension: 0.4, spanGaps: true, pointRadius: 4, pointBackgroundColor: '#2dd4bf' }]
+            datasets: [{ label: currentLang === 'ja' ? '体重' : 'Weight', data: weights, borderColor: '#2dd4bf', backgroundColor: 'rgba(45, 212, 191, 0.1)', fill: true, tension: 0.4, spanGaps: true, pointRadius: 4, pointBackgroundColor: '#2dd4bf' }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
@@ -264,8 +264,8 @@ function renderWeightChart(labels, weights) {
 }
 
 function updateAnalysisText(intakeArr, targetArr) {
-    const intakeAvg = Math.round(intakeArr.reduce((a,b)=>a+b,0) / 7);
-    const targetAvg = Math.round(targetArr.reduce((a,b)=>a+b,0) / 7);
+    const intakeAvg = Math.round(intakeArr.reduce((a, b) => a + b, 0) / 7);
+    const targetAvg = Math.round(targetArr.reduce((a, b) => a + b, 0) / 7);
     const achievement = Math.round((intakeAvg / targetAvg) * 100);
 
     const weeklyAvg = document.getElementById('weekly-avg-cal');
@@ -289,7 +289,7 @@ function toCanonical(dStr) {
         const d = new Date(dStr.replace(/\//g, '-'));
         if (isNaN(d.getTime())) return dStr;
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    } catch(e) { return dStr; }
+    } catch (e) { return dStr; }
 }
 
 window.updateCharts = updateCharts;

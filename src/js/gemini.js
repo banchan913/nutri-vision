@@ -30,13 +30,20 @@ async function analyzeImage(base64Data, mimeType, mode = 'food') {
     }, 1000);
 
     const modelName = state.detectedModel || 'gemini-1.5-flash';
+    const langSuffixStr = currentLang === 'ja' 
+        ? "必ず日本の一般的な料理名（例：ラーメン、おにぎり、サラダ）を使用し、日本語で出力してください。"
+        : "Output the dish name and properties in English.";
     const userPrompt = mode === 'food' 
-        ? "この食事画像を解析してください。結果は必ず日本の一般的な料理名（例：ラーメン、おにぎり、サラダ）を使用し、日本語で出力してください。"
-        : "この栄養成分表示の画像を解析してください。全ての項目名を日本語で出力してください。";
+        ? `この食事画像/This food imageを解析してください。${langSuffixStr}`
+        : `この栄養成分表示の画像/This nutrition labelを解析してください。全ての項目名を指定された言語で出力してください。${langSuffixStr}`;
+
+    const systemPrompt = currentLang === 'ja'
+        ? "あなたは日本の栄養管理の専門家です。全ての出力、特に料理名(name)は、必ず日本語で記述してください。結果は厳密に指定されたJSONフォーマットで回答してください。"
+        : "You are an expert in nutrition management. You must output everything, especially the dish name (name), in English. Respond strictly in the specified JSON format.";
 
     const payload = {
         contents: [{ parts: [{ text: userPrompt }, { inline_data: { mime_type: mimeType, data: base64Data } }] }],
-        system_instruction: { parts: [{ text: "あなたは日本の栄養管理の専門家です。全ての出力、特に料理名(name)は、必ず日本語で記述してください。結果は厳密に指定されたJSONフォーマットで回答してください。" }] },
+        system_instruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
             response_mime_type: "application/json",
             response_schema: {
@@ -61,17 +68,17 @@ async function analyzeImage(base64Data, mimeType, mode = 'food') {
         if (!response.ok) { const errBody = await response.json(); throw new Error(`Gemini API Error: ${errBody.error?.message || response.statusText}`); }
         const result = await response.json();
         clearInterval(timer); // 成功時にタイマー停止
-        if (!result.candidates || !result.candidates[0]) throw new Error('AIからの有効な回答が得られませんでした。');
+        if (!result.candidates || !result.candidates[0]) throw new Error(t('ai_err_no_ans'));
         let textResponse = result.candidates[0].content.parts[0].text;
         textResponse = textResponse.replace(/```json\n?|```/g, '').trim();
         
-        if (statusText) statusText.textContent = "解析完了！結果を表示します...";
+        if (statusText) statusText.textContent = t('ai_status_done');
         return JSON.parse(textResponse);
     } catch (error) {
         // @ts-ignore
         if (typeof timer !== 'undefined') clearInterval(timer);
         console.error('Gemini Analysis Failed:', error);
-        if (statusText) statusText.textContent = `解析エラー: ${error.message}`;
+        if (statusText) statusText.textContent = `${t('ai_err_fail')} : ${error.message}`;
         setTimeout(() => { if (status) status.classList.add('hidden'); }, 5000);
         throw error;
     }
@@ -108,11 +115,11 @@ fileInput.addEventListener('change', async (e) => {
             showEditModal(data);
         } catch (err) { 
             console.error(err); 
-            alert("解析に失敗しました。\n詳細: " + err.message); 
+            alert(`${t('ai_err_fail')}\nDetail: ${err.message}`); 
             const container = document.getElementById('image-preview-container');
             if(container) {
                 container.innerHTML = `<div style="padding: 20px; background: rgba(239,68,68,0.1); border: 2px solid var(--accent-danger); border-radius: var(--radius-md);">
-                    <h4 style="color: var(--accent-danger); margin-bottom: 10px;">解析に失敗しました</h4>
+                    <h4 style="color: var(--accent-danger); margin-bottom: 10px;">${t('ai_err_fail')}</h4>
                     <p style="font-size: 13px; color: var(--text-main); word-break: break-all;">${err.message}</p>
                 </div>`;
                 container.classList.remove('preview-hidden');
@@ -148,68 +155,68 @@ function showEditModal(data) {
 
     editForm.innerHTML = `
         <div class="setting-item">
-            <label>1. 記録日を選択</label>
+            <label>${t('edit_step1')}</label>
             <input type="date" id="edit-date" value="${curDate}">
         </div>
         <div class="edit-item">
-            <label>食品名・料理名</label>
+            <label>${t('edit_name')}</label>
             <input type="text" id="edit-name" value="${data.meal_name || data.name}">
         </div>
         <div class="edit-item" style="margin-top: 10px;">
-            <label>今日の体重 (kg / 任意)</label>
-            <input type="number" id="edit-weight" step="0.1" placeholder="例: ${state.profile?.weight || '--'}">
+            <label>${t('edit_weight')}</label>
+            <input type="number" id="edit-weight" step="0.1" placeholder="${state.profile?.weight || '--'}">
         </div>
         <div class="setting-item" style="margin-top: 15px;">
-            <label>2. 食事区分を選択 (1タップ)</label>
+            <label>${t('edit_step2')}</label>
             <div class="segment-selector meals" id="meal-category-selector">
-                <div class="segment-btn ${autoCategory === '朝食' ? 'active' : ''}" data-val="朝食">朝食</div>
-                <div class="segment-btn ${autoCategory === '昼食' ? 'active' : ''}" data-val="昼食">昼食</div>
-                <div class="segment-btn ${autoCategory === '夕食' ? 'active' : ''}" data-val="夕食">夕食</div>
-                <div class="segment-btn ${autoCategory === '間食' ? 'active' : ''}" data-val="間食">間食</div>
-                <div class="segment-btn ${autoCategory === '夜食' ? 'active' : ''}" data-val="夜食">夜食</div>
+                <div class="segment-btn ${autoCategory === '朝食' ? 'active' : ''}" data-val="朝食">${t('edit_meal_break')}</div>
+                <div class="segment-btn ${autoCategory === '昼食' ? 'active' : ''}" data-val="昼食">${t('edit_meal_lunch')}</div>
+                <div class="segment-btn ${autoCategory === '夕食' ? 'active' : ''}" data-val="夕食">${t('edit_meal_dinner')}</div>
+                <div class="segment-btn ${autoCategory === '間食' ? 'active' : ''}" data-val="間食">${t('edit_meal_snack')}</div>
+                <div class="segment-btn ${autoCategory === '夜食' ? 'active' : ''}" data-val="夜食">${t('edit_meal_night')}</div>
             </div>
         </div>
         <div class="setting-item" style="margin-top: 15px;">
-            <label>食事のスタイル (自炊なら栄養素を自動調整)</label>
+            <label>${t('edit_style')}</label>
             <div class="segment-selector" id="cooking-type-selector" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div class="segment-btn active" data-val="outside">外食・市販</div>
-                <div class="segment-btn" data-val="inside">自炊 (脂質・塩分控えめ)</div>
+                <div class="segment-btn active" data-val="outside">${t('edit_style_out')}</div>
+                <div class="segment-btn" data-val="inside">${t('edit_style_in')}</div>
             </div>
         </div>
         <div class="setting-item" style="margin-top: 15px;">
-            <label>3. 料理名と各栄養素 (必要なら編集)</label>
+            <label>${t('edit_step3')}</label>
             <input type="text" id="edit-name" value="${data.name}" style="margin-bottom: 10px; height: 54px; font-size: 18px;">
             <div class="edit-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
                 <div class="edit-item">
-                    <label>エネルギー</label>
+                    <label>Energy (kcal)</label>
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <input type="number" id="edit-calories" value="${Math.round(data.total_calories || data.calories)}">
                         <span style="font-size: 12px; color: var(--text-secondary);">kcal</span>
                     </div>
                 </div>
                 <div class="edit-item">
-                    <label>たんぱく質</label>
+                    <label>${t('dash_protein')}</label>
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <input type="number" id="edit-p" step="0.1" value="${data.protein_g || data.p}">
                         <span style="font-size: 12px; color: var(--text-secondary);">g</span>
                     </div>
                 </div>
                 <div class="edit-item">
-                    <label>脂質</label>
+                    <label>${t('dash_fat')}</label>
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <input type="number" id="edit-f" step="0.1" value="${data.fat_g || data.f}">
                         <span style="font-size: 12px; color: var(--text-secondary);">g</span>
                     </div>
                 </div>
                 <div class="edit-item">
-                    <label>炭水化物</label>
+                    <label>${t('dash_carbs')}</label>
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <input type="number" id="edit-c" step="0.1" value="${data.carbs_g || data.c}">
                         <span style="font-size: 12px; color: var(--text-secondary);">g</span>
                     </div>
                 </div>
                 <div class="edit-item">
-                    <label>食塩相当量</label>
+                    <label>${t('dash_salt_today')}</label>
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <input type="number" id="edit-salt" step="0.1" value="${data.salt_g || data.salt || 0}">
                         <span style="font-size: 12px; color: var(--text-secondary);">g</span>

@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="src/js/i18n.js"></script>
 </head>
 <body class="dark-theme">
     <div id="app">
@@ -19,28 +20,28 @@
                 <span>Nutri<span>Vision</span></span>
             </div>
             <ul class="nav-links">
-                <li class="active" data-tab="dashboard"><i class="ph ph-squares-four"></i><span>ダッシュボード</span></li>
-                <li data-tab="calendar"><i class="ph ph-calendar-blank"></i><span>カレンダー</span></li>
-                <li data-tab="meal-log"><i class="ph ph-camera"></i><span>記録する</span></li>
-                <li data-tab="analysis"><i class="ph ph-chart-line-up"></i><span>トレンド分析</span></li>
-                <li data-tab="history"><i class="ph ph-calendar"></i><span>全履歴</span></li>
-                <li data-tab="settings"><i class="ph ph-gear"></i><span>設定</span></li>
+                <li class="active" data-tab="dashboard"><i class="ph ph-squares-four"></i><span data-i18n="nav_dashboard">ダッシュボード</span></li>
+                <li data-tab="calendar"><i class="ph ph-calendar-blank"></i><span data-i18n="nav_calendar">カレンダー</span></li>
+                <li data-tab="meal-log"><i class="ph ph-camera"></i><span data-i18n="nav_record">記録する</span></li>
+                <li data-tab="analysis"><i class="ph ph-chart-line-up"></i><span data-i18n="nav_analysis">トレンド分析</span></li>
+                <li data-tab="history"><i class="ph ph-calendar"></i><span data-i18n="nav_history">全履歴</span></li>
+                <li data-tab="settings"><i class="ph ph-gear"></i><span data-i18n="nav_settings">設定</span></li>
             </ul>
             <div class="user-profile" id="user-status">
                 <div class="avatar-placeholder"><i class="ph ph-user"></i></div>
                 <div class="user-info">
-                    <span class="user-name">ゲストユーザー</span>
-                    <span class="user-email">端末保存モード</span>
+                    <span class="user-name" data-i18n="guest_user">ゲストユーザー</span>
+                    <span class="user-email" data-i18n="local_mode">端末保存モード</span>
                 </div>
             </div>
         </nav>
 
         <main class="content-area">
             <header class="main-header">
-                <h1 id="page-title">ダッシュボード</h1>
+                <h1 id="page-title" data-i18n="nav_dashboard">ダッシュボード</h1>
                 <div class="header-actions">
-                    <button class="btn btn-secondary" id="sync-btn" title="クラウド（スプレッドシート）の最新データを取り込み、同期します"><i class="ph ph-arrows-clockwise"></i><span>同期</span></button>
-                    <button class="btn btn-primary" id="quick-add-btn" title="食事や運動を新しく記録します"><i class="ph ph-plus-circle"></i><span>記録</span></button>
+                    <button class="btn btn-secondary" id="sync-btn" title="クラウド（スプレッドシート）の最新データを取り込み、同期します"><i class="ph ph-arrows-clockwise"></i><span data-i18n="btn_sync">同期</span></button>
+                    <button class="btn btn-primary" id="quick-add-btn" title="食事や運動を新しく記録します"><i class="ph ph-plus-circle"></i><span data-i18n="btn_record">記録</span></button>
                 </div>
             </header>
 
@@ -49,52 +50,52 @@
                 <section id="dashboard-tab" class="tab-pane active">
                     <div class="stats-grid">
                         <div class="stat-card calories">
-                            <div class="card-title">摂取エネルギー (今日)</div>
+                            <div class="card-title" data-i18n="dash_cal_today">摂取エネルギー (今日)</div>
                             <div id="today-calories" class="card-value">0 <span class="unit">kcal</span></div>
                             <div class="card-progress"><div class="progress-bar" id="calorie-progress" style="width: 0%;"></div></div>
                             <div class="card-target" id="calorie-target-display">目標: -- kcal</div>
                         </div>
                         <div class="stat-card pfc">
-                            <div class="card-title">三大栄養素バランス</div>
+                            <div class="card-title" data-i18n="dash_pfc">三大栄養素バランス</div>
                             <div class="pfc-values">
-                                <div class="pfc-item"><span>たんぱく質</span> <div id="today-p" class="card-value">0 <span class="unit">g</span></div></div>
-                                <div class="pfc-item"><span>脂質</span> <div id="today-f" class="card-value">0 <span class="unit">g</span></div></div>
-                                <div class="pfc-item"><span>炭水化物</span> <div id="today-c" class="card-value">0 <span class="unit">g</span></div></div>
+                                <div class="pfc-item"><span data-i18n="dash_protein">たんぱく質</span> <div id="today-p" class="card-value">0 <span class="unit">g</span></div></div>
+                                <div class="pfc-item"><span data-i18n="dash_fat">脂質</span> <div id="today-f" class="card-value">0 <span class="unit">g</span></div></div>
+                                <div class="pfc-item"><span data-i18n="dash_carbs">炭水化物</span> <div id="today-c" class="card-value">0 <span class="unit">g</span></div></div>
                             </div>
                         </div>
                         <div class="stat-card salt">
-                            <div class="card-title">食塩相当量 (今日)</div>
+                            <div class="card-title" data-i18n="dash_salt_today">食塩相当量 (今日)</div>
                             <div id="today-salt" class="card-value">0.0 <span class="unit">g</span></div>
                             <div class="card-progress"><div class="progress-bar salt-bar" id="salt-progress" style="width: 0%;"></div></div>
                             <div class="card-target" id="salt-target-display">目標: -- g</div>
                         </div>
                         <div class="stat-card weight">
-                            <div class="card-title">消費エネルギー (今日)</div>
+                            <div class="card-title" data-i18n="dash_burn_today">消費エネルギー (今日)</div>
                             <div id="today-burned" class="card-value">0 <span class="unit">kcal</span></div>
-                            <div class="card-trend"><i class="ph ph-fire"></i> 運動による消費</div>
+                            <div class="card-trend"><i class="ph ph-fire"></i> <span data-i18n="dash_burn_ext">運動による消費</span></div>
                         </div>
                     </div>
                     <div class="charts-container" style="display: flex; flex-direction: column; gap: 30px; margin-top: 20px;">
                         <div class="chart-box">
                             <div class="chart-header">
-                                <h3>1. カロリー収支：摂取 vs 目標</h3>
-                                <p class="help-text">目標を越えていないか、毎日の食事量を確認します。</p>
+                                <h3 data-i18n="chart1_title">1. カロリー収支：摂取 vs 目標</h3>
+                                <p class="help-text" data-i18n="chart1_desc">目標を越えていないか、毎日の食事量を確認します。</p>
                             </div>
                             <div style="height: 250px;"><canvas id="intakeTargetChart"></canvas></div>
                         </div>
 
                         <div class="chart-box">
                             <div class="chart-header">
-                                <h3>2. 三大栄養バランスの質</h3>
-                                <p class="help-text">理想の比率（たんぱく質:15% 脂質:25% 炭水化物:60%）に近いほど健康的です。</p>
+                                <h3 data-i18n="chart2_title">2. 三大栄養バランスの質</h3>
+                                <p class="help-text" data-i18n="chart2_desc">理想の比率（たんぱく質:15% 脂質:25% 炭水化物:60%）に近いほど健康的です。</p>
                             </div>
                             <div style="height: 250px;"><canvas id="pfcBalanceChart"></canvas></div>
                         </div>
 
                         <div class="chart-box">
                             <div class="chart-header">
-                                <h3>3. 体重の推移トレンド</h3>
-                                <p class="help-text">食事と運動による、なだらかな体重の変化を追跡します。</p>
+                                <h3 data-i18n="chart3_title">3. 体重の推移トレンド</h3>
+                                <p class="help-text" data-i18n="chart3_desc">食事と運動による、なだらかな体重の変化を追跡します。</p>
                             </div>
                             <div style="height: 200px;"><canvas id="weightTrendChart"></canvas></div>
                         </div>
@@ -110,32 +111,32 @@
                     </div>
                     <div class="calendar-grid" id="calendar-grid"></div>
                     <div id="day-details" class="day-details-panel">
-                        <h3>選択した日の記録</h3>
-                        <div id="day-meals-list">日付を選択すると表示されます</div>
+                        <h3 data-i18n="cal_selected">選択した日の記録</h3>
+                        <div id="day-meals-list"><span data-i18n="cal_select_help">日付を選択すると表示されます</span></div>
                     </div>
                 </section>
 
                 <!-- Meal Log Tab -->
                 <section id="meal-log-tab" class="tab-pane">
                     <div class="mode-selector">
-                        <button class="mode-btn active" data-mode="food">食事写真解析</button>
-                        <button class="mode-btn" data-mode="ocr">栄養ラベル解析</button>
+                        <button class="mode-btn active" data-mode="food" data-i18n="meal_mode_photo">食事写真解析</button>
+                        <button class="mode-btn" data-mode="ocr" data-i18n="meal_mode_ocr">栄養ラベル解析</button>
                     </div>
                     <div class="upload-area" id="drop-zone" style="margin-bottom: 20px;">
                         <i class="ph ph-cloud-arrow-up"></i>
-                        <p>画像をドラッグ＆ドロップ、またはクリックして撮影</p>
+                        <p data-i18n="meal_upload_desc">画像をドラッグ＆ドロップ、またはクリックして撮影</p>
                         <input type="file" id="file-input" accept="image/*" hidden>
-                        <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">写真を選択</button>
+                        <button class="btn btn-primary" onclick="document.getElementById('file-input').click()"><span data-i18n="meal_btn_photo">写真を選択</span></button>
                     </div>
                     <!-- プレビュー表示エリア -->
                     <div id="image-preview-container" class="preview-hidden" style="margin-bottom: 20px; text-align: center;">
                         <img id="image-preview" src="" style="max-width: 100%; max-height: 300px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border: 2px solid var(--border-card);">
-                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">解析中の写真</p>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;" data-i18n="meal_analyzing">解析中の写真</p>
                     </div>
                     <div class="exercise-section" style="text-align: center; margin-bottom: 20px; padding: 20px; border: 2px dashed rgba(255,255,255,0.1); border-radius: var(--radius-md);">
-                        <h4 style="margin-bottom: 10px; color: var(--text-secondary);">運動をした場合はこちら</h4>
+                        <h4 style="margin-bottom: 10px; color: var(--text-secondary);" data-i18n="meal_exercise_help">運動をした場合はこちら</h4>
                         <button class="btn btn-secondary" onclick="openModal('activity-modal')">
-                            <i class="ph ph-barbell"></i><span>運動を記録する</span>
+                            <i class="ph ph-barbell"></i><span data-i18n="meal_btn_exercise">運動を記録する</span>
                         </button>
                     </div>
                 </section>
@@ -143,17 +144,17 @@
                 <!-- Analysis Tab -->
                 <section id="analysis-tab" class="tab-pane">
                     <div class="prediction-box">
-                        <h2>栄養摂取トレンド & 未来予想</h2>
+                        <h2 data-i18n="ana_title">栄養摂取トレンド & 未来予想</h2>
                         <div class="prediction-value" style="margin-bottom: 20px;">
-                            1ヶ月後の予想体重: <span id="predicted-weight" style="font-size: 32px; color: var(--accent-primary);">--</span> kg
+                            <span data-i18n="ana_expected_weight">1ヶ月後の予想体重</span>: <span id="predicted-weight" style="font-size: 32px; color: var(--accent-primary);">--</span> kg
                         </div>
                         <div class="stats-grid">
                             <div class="stat-card">
-                                <div class="card-title">今週の平均摂取</div>
+                                <div class="card-title" data-i18n="ana_weekly_avg">今週の平均摂取</div>
                                 <div id="weekly-avg-cal" class="card-value">-- <span class="unit">kcal</span></div>
                             </div>
                             <div class="stat-card">
-                                <div class="card-title">目標達成率</div>
+                                <div class="card-title" data-i18n="ana_achievement">目標達成率</div>
                                 <div id="weekly-achievement" class="card-value">-- <span class="unit">%</span></div>
                             </div>
                         </div>
@@ -173,25 +174,25 @@
                     <div id="onboarding-guide" class="onboarding-banner hidden">
                         <div class="banner-icon"><i class="ph-duotone ph-sparkle"></i></div>
                         <div class="banner-body">
-                            <h4>Welcome to Nutri-Vision!</h4>
-                            <p>最初に使用を開始するための3つのステップを設定しましょう。PCの設定情報は、このページの下部にあるQRコードでスマホへ簡単に引き継げます。</p>
+                            <h4 data-i18n="set_guide_title">Welcome to Nutri-Vision!</h4>
+                            <p data-i18n="set_guide_desc">最初に使用を開始するための3つのステップを設定しましょう。PCの設定情報は、このページの下部にあるQRコードでスマホへ簡単に引き継げます。</p>
                         </div>
                     </div>
 
                     <div class="settings-group">
-                        <h3>1. パーソナルプロフィール（推奨摂取量の計算）</h3>
+                        <h3 data-i18n="set_prof_title">1. パーソナルプロフィール（推奨摂取量の計算）</h3>
                         <div class="settings-form-grid" style="display: flex; flex-direction: column; gap: 20px;">
                             <div class="setting-item">
-                                <label>性別</label>
+                                <label data-i18n="set_gender">性別</label>
                                 <div class="profile-options" id="profile-gender-selector">
-                                    <div class="segment-btn" data-val="male">男性</div>
-                                    <div class="segment-btn" data-val="female">女性</div>
+                                    <div class="segment-btn" data-val="male" data-i18n="set_male">男性</div>
+                                    <div class="segment-btn" data-val="female" data-i18n="set_female">女性</div>
                                 </div>
                                 <input type="hidden" id="profile-gender" value="male">
                             </div>
 
                             <div class="setting-item">
-                                <label>年齢 (歳)</label>
+                                <label data-i18n="set_age">年齢 (歳)</label>
                                 <div class="profile-options" id="profile-age-selector">
                                     <div class="segment-btn" data-val="20">20代</div>
                                     <div class="segment-btn" data-val="30">30代</div>
@@ -205,52 +206,52 @@
 
                             <div class="profile-row-grid">
                                 <div class="setting-item">
-                                    <label>身長 (cm)</label>
+                                    <label data-i18n="set_height">身長 (cm)</label>
                                     <input type="number" id="profile-height" placeholder="cm" hidden>
                                     <div class="scroll-picker-container" id="picker-height"></div>
                                 </div>
                                 <div class="setting-item">
-                                    <label>体重 (kg)</label>
+                                    <label data-i18n="set_weight">体重 (kg)</label>
                                     <input type="number" id="profile-weight" placeholder="kg" hidden>
                                     <div class="scroll-picker-container" id="picker-weight"></div>
                                 </div>
                             </div>
 
                             <div class="setting-item" style="grid-column: span 2;">
-                                <label>基本の身体活動レベル (PAL)</label>
-                                <div class="pal-guide" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;">
+                                <label data-i18n="set_pal_title">基本の身体活動レベル (PAL)</label>
+                                <div class="pal-guide" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;" data-i18n="set_pal_desc">
                                     <strong>低い</strong>: 生活の大部分が座位（デスクワーク、家で過ごすことが多い）<br>
                                     <strong>ふつう</strong>: 座位中心だが、通勤・買い物・家事・軽いスポーツ等を含む<br>
                                     <strong>高い</strong>: 立位や移動が多い仕事、または活発な運動習慣（ジム等）がある
                                 </div>
                                 <div class="profile-options" id="profile-pal-selector">
-                                    <div class="segment-btn" data-val="1.5">低い (1.5)</div>
-                                    <div class="segment-btn" data-val="1.75">ふつう (1.75)</div>
-                                    <div class="segment-btn" data-val="2.0">高い (2.0)</div>
+                                    <div class="segment-btn" data-val="1.5" data-i18n="set_pal_low">低い (1.5)</div>
+                                    <div class="segment-btn" data-val="1.75" data-i18n="set_pal_mid">ふつう (1.75)</div>
+                                    <div class="segment-btn" data-val="2.0" data-i18n="set_pal_hi">高い (2.0)</div>
                                 </div>
                                 <input type="hidden" id="profile-pal" value="1.75">
                             </div>
                         </div>
-                        <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveProfile()">設定を保存して計算する</button>
+                        <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveProfile()"><span data-i18n="set_btn_calc">設定を保存して計算する</span></button>
                     </div>
 
                     <div class="settings-group">
-                        <h3>2. AI解析の設定</h3>
-                        <p class="help-text" style="margin-bottom: 10px;">
+                        <h3 data-i18n="set_ai_title">2. AI解析の設定</h3>
+                        <p class="help-text" style="margin-bottom: 10px;" data-i18n="set_ai_desc">
                             Gemini APIキーが必要です。<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-primary);">Google AI Studio</a> で無料で取得できます。
                         </p>
                         <div class="setting-item">
-                            <label>Gemini APIキー</label>
+                            <label data-i18n="set_ai_key">Gemini APIキー</label>
                             <div style="display: flex; gap: 8px;">
                                 <input type="password" id="gemini-key" placeholder="APIキーを入力" style="flex: 1;">
-                                <button class="btn btn-secondary" onclick="testGeminiConnection()" id="test-api-btn">テスト</button>
+                                <button class="btn btn-secondary" onclick="testGeminiConnection()" id="test-api-btn"><span data-i18n="set_btn_test">テスト</span></button>
                             </div>
                             <div id="api-status-result" style="margin-top: 10px; font-size: 13px; display: none; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.05);"></div>
                         </div>
                     </div>
 
                     <div class="settings-group">
-                        <h3>3. クラウド同期（Google スプレッドシート）</h3>
+                        <h3 data-i18n="set_sync_title">3. クラウド同期（Google スプレッドシート）</h3>
                         <div class="gas-guide" style="font-size: 13px; color: var(--text-main); background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin-bottom: 15px; line-height: 1.6;">
                             <p style="font-weight: 700; color: var(--accent-primary); margin-bottom: 10px; font-size: 15px;">☁️ クラウド同期（Google スプレッドシート）の設定手順</p>
                             <p>この設定を行うと、スマホやPCなど複数の端末でデータを共有したり、大切な記録を永続的にバックアップできるようになります。</p>
@@ -273,7 +274,7 @@
                             </div>
                         </div>
                         <button class="btn btn-secondary" style="width: 100%; margin-bottom: 15px;" onclick="copyGasScript()">
-                            <i class="ph ph-copy"></i> GASスクリプトをコピー
+                            <i class="ph ph-copy"></i> <span data-i18n="set_sync_btn_copy">GASスクリプトをコピー</span>
                         </button>
                         <div class="setting-item">
                             <label>GAS ウェブアプリURL</label>
@@ -294,23 +295,23 @@
                     </div>
 
                     <div class="settings-group transfer-group" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.2);">
-                        <h3 style="color: var(--accent-primary);"><i class="ph ph-device-mobile"></i> スマホへ設定を転送</h3>
-                        <p class="help-text" style="margin-bottom:12px;">
+                        <h3 style="color: var(--accent-primary);"><i class="ph ph-device-mobile"></i> <span data-i18n="set_transfer_title">スマホへ設定を転送</span></h3>
+                        <p class="help-text" style="margin-bottom:12px;" data-i18n="set_transfer_desc">
                             スマホにGASのURLを打ち込むのは大変です。このボタンでQRコードを表示し、スマホのカメラで読み取るだけで設定を引き継げます。
                         </p>
                         <button class="btn btn-primary" onclick="showTransferQR()" style="width: 100%;">
-                           <i class="ph ph-qr-code"></i> スマホ用QRコードを表示
+                           <i class="ph ph-qr-code"></i> <span data-i18n="set_btn_qr">スマホ用QRコードを表示</span>
                         </button>
                     </div>
 
                     <div class="settings-group">
-                        <h3>4. データ管理</h3>
-                        <button class="btn btn-secondary" onclick="exportToCSV()"><i class="ph ph-download"></i> CSV形式で全履歴を出力</button>
+                        <h3 data-i18n="set_export_title">4. データ管理</h3>
+                        <button class="btn btn-secondary" onclick="exportToCSV()"><i class="ph ph-download"></i> <span data-i18n="set_btn_export">CSV形式で全履歴を出力</span></button>
                     </div>
 
                     <div id="finish-setup-container" class="settings-group" style="border: 2px solid var(--accent-success); background: rgba(16, 185, 129, 0.05); margin-top: 30px;">
                         <button class="btn btn-primary" onclick="finishSetup()" style="width: 100%; background: var(--accent-success);">
-                            <i class="ph ph-check-circle"></i> セットアップを完了して開始する
+                            <i class="ph ph-check-circle"></i> <span data-i18n="set_btn_finish">セットアップを完了して開始する</span>
                         </button>
                     </div>
 
@@ -357,47 +358,47 @@
     <!-- Modals -->
     <div id="edit-modal" class="modal">
         <div class="modal-content">
-            <h3>解析結果の確認・編集</h3>
+            <h3 data-i18n="modal_edit_title">解析結果の確認・編集</h3>
             <div id="edit-form"></div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
-                <button class="btn btn-primary" id="save-entry-btn">保存する</button>
+                <button class="btn btn-secondary" onclick="closeModal()" data-i18n="btn_cancel">キャンセル</button>
+                <button class="btn btn-primary" id="save-entry-btn" data-i18n="btn_save">保存する</button>
             </div>
         </div>
     </div>
 
     <div id="activity-modal" class="modal">
         <div class="modal-content">
-            <h3>運動内容の記録</h3>
+            <h3 data-i18n="modal_act_title">運動内容の記録</h3>
             <div class="setting-item">
-                <label>1. 日付を選択</label>
+                <label data-i18n="modal_act_step1">1. 日付を選択</label>
                 <input type="date" id="act-date">
             </div>
             
             <div class="setting-item" style="margin-top: 15px;">
-                <label>2. 時間帯を選択 (1タップ)</label>
+                <label data-i18n="modal_act_step2">2. 時間帯を選択 (1タップ)</label>
                 <div class="segment-selector" id="act-time-selector">
-                    <div class="segment-btn active" data-val="朝">朝</div>
-                    <div class="segment-btn" data-val="昼">昼</div>
-                    <div class="segment-btn" data-val="夕">夕</div>
-                    <div class="segment-btn" data-val="夜">夜</div>
+                    <div class="segment-btn active" data-val="朝" data-i18n="act_morning">朝</div>
+                    <div class="segment-btn" data-val="昼" data-i18n="act_noon">昼</div>
+                    <div class="segment-btn" data-val="夕" data-i18n="act_evening">夕</div>
+                    <div class="segment-btn" data-val="夜" data-i18n="act_night">夜</div>
                 </div>
             </div>
 
             <div class="setting-item" style="margin-top: 15px;">
-                <label>3. 種目を選択</label>
+                <label data-i18n="modal_act_step3">3. 種目を選択</label>
                 <select id="act-type">
-                    <option value="walking">ウォーキング</option>
-                    <option value="jogging">ジョギング</option>
-                    <option value="cycling">サイクリング</option>
-                    <option value="cleaning">家事・掃除</option>
-                    <option value="stairs">階段昇降</option>
-                    <option value="training">筋力トレーニング</option>
+                    <option value="walking" data-i18n="act_walking">ウォーキング</option>
+                    <option value="jogging" data-i18n="act_jogging">ジョギング</option>
+                    <option value="cycling" data-i18n="act_cycling">サイクリング</option>
+                    <option value="cleaning" data-i18n="act_cleaning">家事・掃除</option>
+                    <option value="stairs" data-i18n="act_stairs">階段昇降</option>
+                    <option value="training" data-i18n="act_training">筋力トレーニング</option>
                 </select>
             </div>
 
             <div class="setting-item" style="margin-top: 15px;">
-                <label>4. 実施時間を選択</label>
+                <label data-i18n="modal_act_step4">4. 実施時間を選択</label>
                 <div class="segment-selector" id="act-duration-selector" style="margin-bottom: 8px;">
                     <div class="segment-btn" data-val="15">15分</div>
                     <div class="segment-btn active" data-val="30">30分</div>
@@ -407,8 +408,8 @@
                 <input type="number" id="act-duration" placeholder="分 (自由入力用)" value="30">
             </div>
             <div class="modal-footer" style="margin-top: 20px;">
-                <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
-                <button class="btn btn-primary" onclick="saveActivity()">運動を記録する</button>
+                <button class="btn btn-secondary" onclick="closeModal()" data-i18n="btn_cancel">キャンセル</button>
+                <button class="btn btn-primary" onclick="saveActivity()"><span data-i18n="meal_btn_exercise">運動を記録する</span></button>
             </div>
         </div>
     </div>
