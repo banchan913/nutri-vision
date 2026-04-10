@@ -1186,6 +1186,14 @@ h3,
         /* ボトムナビの高さ分を確保 */
         width: 100%;
     }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card.veg {
+        grid-column: span 1 !important;
+    }
 }
 
 .troubleshoot-box {
