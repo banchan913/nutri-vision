@@ -7,6 +7,7 @@ const state = {
     geminiKey: localStorage.getItem('gemini_api_key') || '',
     gasUrl: localStorage.getItem('gas_url') || '',
     detectedModel: localStorage.getItem('detected_model') || 'gemini-1.5-flash',
+    setupComplete: localStorage.getItem('nutri_setup_complete') === 'true',
     viewDate: new Date(),
     isUpdating: false
 };
@@ -37,6 +38,9 @@ function initApp() {
         // [New] URLハッシュによる設定復元魔法
         checkUrlHashForConfig();
 
+        // [New] 初回ガイドの判定
+        checkOnboarding();
+
         initNavigation();
         initSettings();
         initProfileFields();
@@ -46,6 +50,20 @@ function initApp() {
     } catch (e) {
         console.error("Master, initialization failed:", e);
     }
+}
+
+function checkOnboarding() {
+    if (!state.setupComplete) {
+        state.activeTab = 'settings';
+        // HTML要素の制御は renderApp で行う
+    }
+}
+
+function finishSetup() {
+    state.setupComplete = true;
+    localStorage.setItem('nutri_setup_complete', 'true');
+    switchTab('dashboard');
+    alert('【セットアップ完了】Nutri-Vision の全機能が解放されました。幸運を！');
 }
 
 function checkUrlHashForConfig() {
@@ -117,6 +135,10 @@ function renderApp() {
     
     if (state.activeTab === 'history') renderHistoryList();
     if (window.updateCharts) window.updateCharts();
+
+    // オンボーディングバナーの表示制御
+    const guide = document.getElementById('onboarding-guide');
+    if (guide) guide.classList.toggle('hidden', state.setupComplete);
     
     state.isUpdating = false;
 }

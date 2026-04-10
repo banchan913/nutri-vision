@@ -170,6 +170,14 @@
 
                 <!-- Settings Tab -->
                 <section id="settings-tab" class="tab-pane">
+                    <div id="onboarding-guide" class="onboarding-banner hidden">
+                        <div class="banner-icon"><i class="ph-duotone ph-sparkle"></i></div>
+                        <div class="banner-body">
+                            <h4>Welcome to Nutri-Vision!</h4>
+                            <p>最初に使用を開始するための3つのステップを設定しましょう。PCの設定情報は、このページの下部にあるQRコードでスマホへ簡単に引き継げます。</p>
+                        </div>
+                    </div>
+
                     <div class="settings-group">
                         <h3>1. パーソナルプロフィール（推奨摂取量の計算）</h3>
                         <div class="settings-form-grid" style="display: flex; flex-direction: column; gap: 20px;">
@@ -298,6 +306,17 @@
                     <div class="settings-group">
                         <h3>4. データ管理</h3>
                         <button class="btn btn-secondary" onclick="exportToCSV()"><i class="ph ph-download"></i> CSV形式で全履歴を出力</button>
+                    </div>
+
+                    <div id="finish-setup-container" class="settings-group" style="border: 2px solid var(--accent-success); background: rgba(16, 185, 129, 0.05); margin-top: 30px;">
+                        <button class="btn btn-primary" onclick="finishSetup()" style="width: 100%; background: var(--accent-success);">
+                            <i class="ph ph-check-circle"></i> セットアップを完了して開始する
+                        </button>
+                    </div>
+
+                    <div class="version-tag">
+                        Nutri-Vision Ver 1.0<br>
+                        <span>Powered by Gemini & Google Cloud</span>
                     </div>
                 </section>
             </div>
