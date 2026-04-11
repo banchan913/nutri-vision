@@ -55,7 +55,12 @@ function initApp() {
         
         // [Phase 16] 起動時のタブを確実に反映（初回は settings、2回目以降は dashboard）
         switchTab(state.activeTab);
-        state.isInitializing = false;
+
+        // [Phase 24] ピッカーの初期スクロールが完了するまで待ってから初期化フラグを解除
+        setTimeout(() => {
+            state.isInitializing = false;
+            console.log("Master, initialization stabilized.");
+        }, 1500); 
     } catch (e) {
         console.error("Master, initialization failed:", e);
     }
@@ -317,38 +322,56 @@ function initScrollPicker(containerId, min, max, initialValue, callback) {
                     callback(val);
                 }
             }
-        }, 100);
+        }, 150); // デバウンスを少し長くしてPC対応
     });
 
-    // 初期位置へスクロール
-    setTimeout(() => scrollToValue(container, initialValue), 100);
+    // 初期位置へ即座に（behavior: 'auto'）移動
+    setTimeout(() => scrollToValue(container, initialValue, true), 50);
 }
 
-function scrollToValue(container, val) {
+function scrollToValue(container, val, isInitial = false) {
     const target = container.querySelector(`.picker-item[data-val="${val}"]`);
     if (target) {
         container.isInternalScroll = true; // フラグを立ててリスナーを抑制
         const offset = target.offsetLeft - (container.offsetWidth / 2) + (target.offsetWidth / 2);
         
-        container.scrollTo({ left: offset, behavior: 'smooth' });
+        container.scrollTo({ 
+            left: offset, 
+            behavior: isInitial ? 'auto' : 'smooth' 
+        });
         
         // 選択表示の即時反映
         container.querySelectorAll('.picker-item').forEach(item => item.classList.remove('selected'));
         target.classList.add('selected');
         
-        // スムーススクロール完了を待ってからフラグを解除（簡易的に500ms）
-        setTimeout(() => { container.isInternalScroll = false; }, 500);
+        // スクロール完了を待ってからフラグを解除
+        setTimeout(() => { 
+            container.isInternalScroll = false; 
+        }, isInitial ? 200 : 800);
     }
 }
 
 function saveProfile(showAlert = true) {
-    if (state.isInitializing) return; // 初期化中の予期せぬ上書きを防止
+    if (state.isInitializing) return;
+
+    const genderVal = document.getElementById('profile-gender').value;
+    const ageVal = parseInt(document.getElementById('profile-age').value);
+    const heightVal = parseFloat(document.getElementById('profile-height').value);
+    const weightVal = parseFloat(document.getElementById('profile-weight').value);
+    const palVal = parseFloat(document.getElementById('profile-pal').value);
+
+    // バリデーション：異常な値（初期値化の失敗など）での上書きを防止
+    if (!ageVal || ageVal < 10 || !heightVal || !weightVal) {
+        console.warn("Master, attempted to save profile with unstable values. Aborting.");
+        return;
+    }
+
     const profile = {
-        gender: document.getElementById('profile-gender').value,
-        age: parseInt(document.getElementById('profile-age').value) || 30,
-        height: parseFloat(document.getElementById('profile-height').value) || 170,
-        weight: parseFloat(document.getElementById('profile-weight').value) || 65,
-        pal: parseFloat(document.getElementById('profile-pal').value) || 1.75
+        gender: genderVal,
+        age: ageVal,
+        height: heightVal,
+        weight: weightVal,
+        pal: palVal
     };
     setState({ profile });
     if (showAlert) alert(t('msg_saved_prof'));
