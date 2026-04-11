@@ -69,7 +69,7 @@ const translations = {
         "set_about_s2": "<b>2. AI解析設定</b>: 食事を自動解析するためのGemini APIキーを設定します。(<a href='https://aistudio.google.com/app/apikey' target='_blank' style='color: var(--accent-primary);'>Google AI Studio</a> で取得無料)",
         "set_about_s3": "<b>3. クラウド同期 (任意)</b>: スマホ単体で使用する場合は設定不要です。PCと同期したい場合のみ設定してください。",
         "set_sync_note": "【PCでの設定推奨】 ※スマホ単体でご利用の場合はこの設定は不要です。データは自動で端末内に保存されます。",
-        
+
         "set_guide_title": "Welcome to Nutri-Vision!",
         "set_guide_desc": "最初に使用を開始するための3つのステップを設定しましょう。PCの設定情報は、このページの下部にあるQRコードでスマホへ簡単に引き継げます。",
         "set_prof_title": "1. パーソナルプロフィール（推奨摂取量の計算）",
@@ -133,7 +133,7 @@ const translations = {
         "msg_delete_meal": "の記録を削除しますか？",
         "msg_need_apikey": "先にAPIキーを入力してください。",
         "msg_copied_gas": "同期用スクリプトをコピーしました！",
-        
+
         // Gemini
         "ai_status_analyzing": "AIが解析中...",
         "ai_status_almost": "間もなく完了します...",
@@ -141,10 +141,10 @@ const translations = {
         "ai_err_no_ans": "AIからの有効な回答が得られませんでした。",
         "ai_err_fail": "解析に失敗しました。",
         "ai_err_quota": "APIの利用制限またはトークン不足です。設定画面の「AI解析の設定」から「テスト」を押し、軽量なモデル(例: 8b 等)に変更してやり直してください。",
-        
+
         // Days
         "day_sun": "日", "day_mon": "月", "day_tue": "火", "day_wed": "水", "day_thu": "木", "day_fri": "金", "day_sat": "土",
-        
+
         // Edit Form
         "edit_step1": "1. 記録日を選択",
         "edit_name": "食品名・料理名",
@@ -289,16 +289,16 @@ const translations = {
         "msg_delete_meal": "Delete this meal?",
         "msg_need_apikey": "Enter API Key first.",
         "msg_copied_gas": "GAS Script Copied!",
-        
+
         "ai_status_analyzing": "AI is analyzing...",
         "ai_status_almost": "Almost done...",
         "ai_status_done": "Done! Showing results...",
         "ai_err_no_ans": "No valid response from AI.",
         "ai_err_fail": "Analysis failed.",
         "ai_err_quota": "API Quota/Token limit exceeded. Go to Settings > AI API Settings, click 'Test', and select a lighter model.",
-        
+
         "day_sun": "Sun", "day_mon": "Mon", "day_tue": "Tue", "day_wed": "Wed", "day_thu": "Thu", "day_fri": "Fri", "day_sat": "Sat",
-        
+
         "edit_step1": "1. Select Date",
         "edit_name": "Meal Name",
         "edit_weight": "Today's Weight (Optional)",
@@ -326,7 +326,7 @@ function t(key) {
 function translatePage() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        
+
         // もし要素内にアイコンなどのHTMLが含まれている場合は保持する方針
         // 簡単のために今回は innerHTML を上書き可能なものは上書きし、
         // そうでないものは textContent、または placeholder にする

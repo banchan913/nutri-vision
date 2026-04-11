@@ -531,7 +531,10 @@ function renderDayDetailsByDate(dateKey, label) {
                 <div class="history-item-detailed">
                     <div class="h-header">
                         <span>${e.name} (${e.time})</span>
-                        <button class="btn-delete" title="削除" onclick="deleteEntry(${e.id || 0}, '${e.date}', '${e.time}', '${e.name}')"><i class="ph ph-trash"></i></button>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button class="btn-icon" title="編集" onclick="openEditMeal(${e.id})"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="btn-delete" title="削除" onclick="deleteEntry(${e.id || 0}, '${e.date}', '${e.time}', '${e.name}')"><i class="ph ph-trash"></i></button>
+                        </div>
                     </div>
                     <div class="h-stats-grid">
                         <div style="grid-column: span 2; font-weight:700;">${e.calories} kcal</div>
@@ -539,6 +542,8 @@ function renderDayDetailsByDate(dateKey, label) {
                         <div>${t('dash_fat')}: ${e.f}g</div>
                         <div>${t('dash_carbs')}: ${e.c}g</div>
                         <div>${t('dash_salt_today')}: ${e.salt || 0}g</div>
+                        <div style="color:var(--accent-success)">${t('dash_veg')}: ${e.veg || 0}g</div>
+                        <div style="color:var(--accent-primary)">${t('dash_fiber')}: ${e.fiber || 0}g</div>
                     </div>
                 </div>
             `).join('')}
@@ -562,14 +567,19 @@ function renderHistoryList() {
         <div class="history-item-detailed" style="margin-bottom: 12px; border-left: 3px solid ${h.type === 'meal' ? 'var(--accent-primary)' : 'var(--accent-success)'}">
             <div class="h-header">
                 <span>${h.name} (${h.time})</span>
-                <div style="display:flex; align-items:center; gap:10px;">
+                <div style="display:flex; align-items:center; gap:8px;">
                     <span style="font-size:12px; opacity:0.6;">${h.date}</span>
-                    <button class="btn-delete" onclick="${h.type === 'meal' ? `deleteEntry(${h.id || 0}, '${h.date}', '${h.time}', '${h.name}')` : `deleteActivity(${h.id || 0})`}"><i class="ph ph-trash"></i></button>
+                    ${h.type === 'meal' ? `<button class="btn-icon" title="編集" onclick="openEditMeal(${h.id})"><i class="ph ph-pencil-simple"></i></button>` : ''}
+                    <button class="btn-delete" title="削除" onclick="${h.type === 'meal' ? `deleteEntry(${h.id || 0}, '${h.date}', '${h.time}', '${h.name}')` : `deleteActivity(${h.id || 0})`}"><i class="ph ph-trash"></i></button>
                 </div>
             </div>
             <div class="h-stats-grid">
                 ${h.type === 'meal' 
-                    ? `<div style="grid-column: span 2; font-weight:700;">${h.calories} kcal</div><div>${t('dash_protein')}: ${h.p}g</div><div>${t('dash_fat')}: ${h.f}g</div><div>${t('dash_carbs')}: ${h.c}g</div><div>${t('dash_salt_today')}: ${h.salt || 0}g</div>` 
+                    ? `<div style="grid-column: span 2; font-weight:700;">${h.calories} kcal</div>
+                       <div>${t('dash_protein')}: ${h.p}g</div><div>${t('dash_fat')}: ${h.f}g</div><div>${t('dash_carbs')}: ${h.c}g</div>
+                       <div>${t('dash_salt_today')}: ${h.salt || 0}g</div>
+                       <div style="color:var(--accent-success)">${t('dash_veg')}: ${h.veg || 0}g</div>
+                       <div style="color:var(--accent-primary)">${t('dash_fiber')}: ${h.fiber || 0}g</div>` 
                     : `<div>${t('cal_burn')}: <strong>${h.calories}</strong> kcal</div><div>${h.duration} min</div>`
                 }
             </div>
@@ -579,8 +589,23 @@ function renderHistoryList() {
 
 function saveEntry(entry) {
     if (!entry.id) entry.id = Date.now();
-    const history = [...state.history, entry];
+    // [Phase 20] 既存IDがあれば上書き、なければ追加
+    const idx = state.history.findIndex(h => h.id === entry.id);
+    let history;
+    if (idx > -1) {
+        history = [...state.history];
+        history[idx] = entry;
+    } else {
+        history = [...state.history, entry];
+    }
     setState({ history });
+}
+
+function openEditMeal(id) {
+    const entry = state.history.find(h => h.id === id);
+    if (entry && window.showEditModal) {
+        window.showEditModal(entry);
+    }
 }
 
 function deleteEntry(id, date, time, name) {

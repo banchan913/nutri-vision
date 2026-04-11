@@ -235,22 +235,22 @@ function showEditModal(data) {
                     </div>
                 </div>
                 <div class="edit-item">
-                    <label>${t('edit_fiber')}</label>
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <input type="number" id="edit-fiber" step="0.1" value="${data.fiber || 0}">
-                        <span style="font-size: 12px; color: var(--text-secondary);">g</span>
-                    </div>
-                </div>
-                <div class="edit-item">
                     <label>${t('edit_veg')}</label>
-                    <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="display:flex; align-items:center; gap:5px;">
                         <input type="number" id="edit-veg" step="1" value="${data.veg || 0}">
                         <span style="font-size: 12px; color: var(--text-secondary);">g</span>
                     </div>
                 </div>
                 <div class="edit-item">
+                    <label>${t('edit_fiber')}</label>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <input type="number" id="edit-fiber" step="0.1" value="${data.fiber || 0}">
+                        <span style="font-size: 12px; color: var(--text-secondary);">g</span>
+                    </div>
+                </div>
+                <div class="edit-item">
                     <label>${t('edit_gyveg')}</label>
-                    <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="display:flex; align-items:center; gap:5px;">
                         <input type="number" id="edit-gyveg" step="1" value="${data.gyVeg || 0}">
                         <span style="font-size: 12px; color: var(--text-secondary);">g</span>
                     </div>
@@ -312,7 +312,7 @@ function showEditModal(data) {
         const weightVal = parseFloat(document.getElementById('edit-weight')?.value);
         
         const entry = {
-            id: Date.now(),
+            id: data.id || Date.now(),
             date: document.getElementById('edit-date').value.replace(/-/g, '/'),
             time: document.querySelector('#meal-category-selector .segment-btn.active')?.getAttribute('data-val') || '間食',
             name: document.getElementById('edit-name').value,

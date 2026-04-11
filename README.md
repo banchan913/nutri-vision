@@ -123,3 +123,19 @@ This application runs purely on the front-end. By default, all your dietary data
 ---
 
 *Made with ❤️ and Vanilla JS.*
+
+---
+
+### 🗓️ Future Roadmap / 今後の展望
+
+**Multi-language Support (i18n) Expansion**
+To reach more users globally, we plan to expand language support to:
+- 🇨🇳 Chinese (Simplified & Traditional / 簡体字・繁体字)
+- 🇪🇸 Spanish (スペイン語)
+- 🇫🇷 French (フランス語)
+- 🇧🇷 Portuguese (ポルトガル語)
+
+**Upcoming Features**
+- [ ] **PWA Support**: Offline capability and "Add to Home Screen" support.
+- [ ] **AI Health Coach**: Personalized advice based on weekly nutrition trends.
+- [ ] **Enhanced Data Sync**: More robust conflict resolution for multi-device sync.

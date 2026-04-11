@@ -1049,6 +1049,24 @@ h3,
     color: #f87171;
 }
 
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent-primary);
+}
+
 /* Day Info Refinement */
 .day-info-mini {
     display: flex;
@@ -1182,9 +1200,14 @@ h3,
 
     .content-area {
         padding: 20px;
-        padding-bottom: 90px;
-        /* ボトムナビの高さ分を確保 */
+        padding-bottom: 120px;
+        /* ボトムナビの高さ分 + 余裕を確保 */
         width: 100%;
+        overflow-y: auto;
+    }
+
+    .tab-pane {
+        padding-bottom: 40px;
     }
 
     .stats-grid {
