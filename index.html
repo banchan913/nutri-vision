@@ -91,7 +91,6 @@
                             <i class="ph ph-info"></i> <span data-i18n="dash_guide_calendar">※詳細な日別分析や過去の記録は『カレンダー』タブから確認できます。</span>
                         </div>
                     </div>
-                    </div>
                 </section>
 
                 <!-- Calendar Tab -->
@@ -111,15 +110,17 @@
                             <div class="segment-btn" data-val="month" data-i18n="cal_scope_month">月次</div>
                         </div>
 
-                        <!-- グラフ表示エリア -->
+                        <!-- 集計サマリー (コンパクト版) -->
+                        <div id="cal-summary-stats" class="h-stats-grid" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 15px; display: none; grid-template-columns: 1fr; gap: 8px;">
+                            <!-- JSで流し込む -->
+                        </div>
 
                         <!-- グラフ表示エリア -->
+                        <!-- グラフ表示エリア -->
+                        <!-- グラフ表示エリア (統合版) -->
                         <div id="cal-charts-container" class="charts-container" style="display: none; flex-direction: column; gap: 20px; margin-bottom: 20px;">
                             <div class="chart-box" style="padding: 15px;">
-                                <div style="height: 200px;"><canvas id="calPfcChart"></canvas></div>
-                            </div>
-                            <div class="chart-box" style="padding: 15px;">
-                                <div style="height: 200px;"><canvas id="calVegChart"></canvas></div>
+                                <div style="height: 350px;"><canvas id="calNutrientChart"></canvas></div>
                             </div>
                         </div>
 
@@ -210,7 +211,32 @@
 
                     <div class="settings-group">
                         <h3 data-i18n="set_prof_title">1. パーソナルプロフィール（推奨摂取量の計算）</h3>
-                        <div class="settings-form-grid" style="display: flex; flex-direction: column; gap: 20px;">
+                        
+                        <!-- 閲覧モード: プロフィールサマリー -->
+                        <div id="profile-summary-area" class="profile-summary-card">
+                            <div class="summary-grid">
+                                <div class="summary-item"><span class="label" data-i18n="set_gender">性別</span>: <span id="summary-gender">-</span></div>
+                                <div class="summary-item"><span class="label" data-i18n="set_age">年齢</span>: <span id="summary-age">-</span>歳</div>
+                                <div class="summary-item"><span class="label" data-i18n="set_height">身長</span>: <span id="summary-height">-</span>cm</div>
+                                <div class="summary-item"><span class="label" data-i18n="set_weight">体重</span>: <span id="summary-weight">-</span>kg</div>
+                            </div>
+                            <div class="summary-stats-box">
+                                <div class="stat">
+                                    <div class="stat-label" data-i18n="set_bmr_label">基礎代謝 (推定)</div>
+                                    <div class="stat-val"><span id="summary-bmr">-</span> <span class="unit">kcal</span></div>
+                                </div>
+                                <div class="stat highlight">
+                                    <div class="stat-label" data-i18n="set_target_cal_label">1日の目標摂取カロリー</div>
+                                    <div class="stat-val"><span id="summary-target">-</span> <span class="unit">kcal</span></div>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary" style="width: 100%; margin-top: 15px;" onclick="toggleProfileEdit(true)">
+                                <i class="ph ph-pencil-simple"></i><span data-i18n="set_btn_edit">プロフィールを変更する</span>
+                            </button>
+                        </div>
+
+                        <!-- 編集モード: 入力フォーム (初期状態は隠す) -->
+                        <div id="profile-edit-area" class="settings-form-grid" style="display: none; flex-direction: column; gap: 20px;">
                             <div class="setting-item">
                                 <label data-i18n="set_gender">性別</label>
                                 <div class="profile-options" id="profile-gender-selector">
@@ -249,9 +275,9 @@
                             <div class="setting-item" style="grid-column: span 2;">
                                 <label data-i18n="set_pal_title">基本の身体活動レベル (PAL)</label>
                                 <div class="pal-guide" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;" data-i18n="set_pal_desc">
-                                    <strong>低い</strong>: 生活の大部分が座位（デスクワーク、家で過ごすことが多い）<br>
-                                    <strong>ふつう</strong>: 座位中心だが、通勤・買い物・家事・軽いスポーツ等を含む<br>
-                                    <strong>高い</strong>: 立位や移動が多い仕事、または活発な運動習慣（ジム等）がある
+                                    <strong>低い</strong>: 生活の大部分が座位<br>
+                                    <strong>ふつう</strong>: 軽いスポーツ等を含む<br>
+                                    <strong>高い</strong>: 活発な運動習慣がある
                                 </div>
                                 <div class="profile-options" id="profile-pal-selector">
                                     <div class="segment-btn" data-val="1.5" data-i18n="set_pal_low">低い (1.5)</div>
@@ -260,8 +286,12 @@
                                 </div>
                                 <input type="hidden" id="profile-pal" value="1.75">
                             </div>
+
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <button class="btn btn-secondary" style="flex: 1;" onclick="toggleProfileEdit(false)"><span data-i18n="btn_cancel">キャンセル</span></button>
+                                <button class="btn btn-primary" style="flex: 2;" onclick="saveProfile()"><span data-i18n="set_btn_calc">設定を保存して計算する</span></button>
+                            </div>
                         </div>
-                        <button class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="saveProfile()"><span data-i18n="set_btn_calc">設定を保存して計算する</span></button>
                     </div>
 
                     <div class="settings-group">

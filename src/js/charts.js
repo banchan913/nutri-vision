@@ -12,16 +12,48 @@ function getBMR() {
     }
 }
 
-// [Phase 26] 充足度グラフを横棒グラフで統一
-const fulfillmentItems = [
-    { label: t('cal_intake'), val: totals.calories, target: dailyTarget, unit: 'kcal', color: '#60a5fa' },
-    { label: t('dash_protein'), val: totals.p, target: targets.p, unit: 'g', color: '#60a5fa' },
-    { label: t('dash_fat'), val: totals.f, target: targets.f, unit: 'g', color: '#facc15' },
-    { label: t('dash_carbs'), val: totals.c, target: targets.c, unit: 'g', color: '#fb923c' },
-    { label: t('dash_salt_today'), val: totals.salt, target: targets.salt, unit: 'g', color: '#f87171' }
-];
-renderFulfillmentChart('dashboardNutrientChart', fulfillmentItems);
-renderVegFiberChart(totals, targets);
+function updateDashboardStats() {
+    const today = toCanonical(new Date().toLocaleDateString('ja-JP'));
+    const todayMeals = state.history.filter(h => toCanonical(h.date) === today);
+    const todayActs = state.activities.filter(a => toCanonical(a.date) === today);
+
+    const totals = todayMeals.reduce((acc, meal) => ({
+        calories: acc.calories + meal.calories,
+        p: acc.p + meal.p,
+        f: acc.f + meal.f,
+        c: acc.c + meal.c,
+        salt: acc.salt + (meal.salt || 0),
+        fiber: acc.fiber + (meal.fiber || 0),
+        veg: acc.veg + (meal.veg || 0),
+        gyVeg: acc.gyVeg + (meal.gyVeg || 0)
+    }), { calories: 0, p: 0, f: 0, c: 0, salt: 0, fiber: 0, veg: 0, gyVeg: 0 });
+
+    const totalBurned = todayActs.reduce((acc, act) => acc + act.calories, 0);
+    const bmr = getBMR();
+    const pal = parseFloat(state.profile.pal || 1.75);
+    const dailyTarget = Math.round(bmr * pal) + totalBurned;
+
+    const targets = {
+        p: (dailyTarget * 0.15) / 4,
+        f: (dailyTarget * 0.25) / 9,
+        c: (dailyTarget * 0.60) / 4,
+        salt: state.profile.gender === 'male' ? 7.5 : 6.5,
+        fiber: state.profile.gender === 'male' ? 21 : 18,
+        veg: 350,
+        gyVeg: 120
+    };
+
+    // [Phase 26] 充足度グラフを横棒グラフで統一
+    const fulfillmentItems = [
+        { label: t('cal_intake'), val: totals.calories, target: dailyTarget, unit: 'kcal', color: '#60a5fa' },
+        { label: t('dash_protein'), val: totals.p, target: targets.p, unit: 'g', color: '#60a5fa' },
+        { label: t('dash_fat'), val: totals.f, target: targets.f, unit: 'g', color: '#facc15' },
+        { label: t('dash_carbs'), val: totals.c, target: targets.c, unit: 'g', color: '#fb923c' },
+        { label: t('dash_salt_today'), val: totals.salt, target: targets.salt, unit: 'g', color: '#f87171' }
+    ];
+    renderFulfillmentChart('dashboardNutrientChart', fulfillmentItems);
+    renderVegFiberChart(totals, targets);
+}
 
 
 function updateCharts() {
@@ -131,14 +163,37 @@ function updatePeriodAnalysis() {
     };
 
     const fulfillmentItems = [
+        { label: t('cal_intake_detailed'), val: avgs.calories, target: targetBMR, unit: 'kcal', color: '#60a5fa' },
         { label: t('dash_protein'), val: avgs.p, target: targets.p, unit: 'g', color: '#60a5fa' },
         { label: t('dash_fat'), val: avgs.f, target: targets.f, unit: 'g', color: '#facc15' },
         { label: t('dash_carbs'), val: avgs.c, target: targets.c, unit: 'g', color: '#fb923c' },
-        { label: t('dash_salt_today'), val: avgs.salt, target: targets.salt, unit: 'g', color: '#f87171' }
+        { label: t('dash_salt_today'), val: avgs.salt, target: targets.salt, unit: 'g', color: '#f87171' },
+        { label: t('dash_veg'), val: avgs.veg, target: targets.veg, unit: 'g', color: '#4ade80' },
+        { label: t('dash_fiber'), val: avgs.fiber, target: targets.fiber, unit: 'g', color: '#3b82f6' },
+        { label: t('dash_gyveg'), val: avgs.gyVeg, target: targets.gyVeg, unit: 'g', color: '#10b981' }
     ];
 
-    renderFulfillmentChart('calPfcChart', fulfillmentItems);
-    renderVegFiberChart(avgs, targets, 'calVegChart');
+    const container = document.getElementById('cal-charts-container');
+    if (container) container.style.display = 'flex';
+
+    renderFulfillmentChart('calNutrientChart', fulfillmentItems);
+
+    // 数値サマリーの更新 (マスター指定の8項目・色分け形式)
+    const summary = document.getElementById('cal-summary-stats');
+    if (summary) {
+        summary.style.display = 'grid';
+        summary.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
+        summary.innerHTML = `
+            <div style="font-size:12px;">${nLabel('cal_intake_detailed', Math.round(avgs.calories), ' kcal')}</div>
+            <div style="font-size:12px;">${nLabel('dash_protein', avgs.p.toFixed(1))}</div>
+            <div style="font-size:12px;">${nLabel('dash_fat', avgs.f.toFixed(1))}</div>
+            <div style="font-size:12px;">${nLabel('dash_carbs', avgs.c.toFixed(1))}</div>
+            <div style="font-size:12px;">${nLabel('dash_salt_today', avgs.salt.toFixed(1))}</div>
+            <div style="font-size:12px;">${nLabel('dash_veg', avgs.veg.toFixed(0))}</div>
+            <div style="font-size:12px;">${nLabel('dash_fiber', avgs.fiber.toFixed(1))}</div>
+            <div style="font-size:12px;">${nLabel('dash_gyveg', avgs.gyVeg.toFixed(0))}</div>
+        `;
+    }
 }
 
 const fulfillmentCharts = {};
@@ -226,7 +281,18 @@ function renderIntakeChart(labels, intake, target) {
             responsive: true, maintainAspectRatio: false,
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                y: { max: maxVal, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                y: { 
+                    max: maxVal, 
+                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                    ticks: { 
+                        color: '#94a3b8',
+                        callback: function(value, index, ticks) {
+                            // 一番上の数字は表示しない
+                            if (index === ticks.length - 1) return '';
+                            return value;
+                        }
+                    } 
+                }
             },
             plugins: {
                 legend: { display: false },
@@ -317,6 +383,11 @@ function renderWeightChart(labels, weights) {
     const ctx = document.getElementById('weightTrendChart')?.getContext('2d');
     if (!ctx) return;
     if (weightChart) weightChart.destroy();
+
+    const validWeights = weights.filter(w => w !== null);
+    const minW = Math.min(...validWeights) * 0.98;
+    const maxW = Math.max(...validWeights) * 1.05;
+
     weightChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -327,7 +398,12 @@ function renderWeightChart(labels, weights) {
             responsive: true, maintainAspectRatio: false,
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                y: { 
+                    min: Math.floor(minW),
+                    max: Math.ceil(maxW),
+                    grid: { color: 'rgba(255,255,255,0.05)' }, 
+                    ticks: { color: '#94a3b8' } 
+                }
             },
             plugins: { legend: { display: false } }
         },
@@ -396,5 +472,6 @@ function toCanonical(dStr) {
 }
 
 window.updateCharts = updateCharts;
-window.calculateAndDisplayStats = calculateAndDisplayStats;
+window.updateDashboardStats = updateDashboardStats;
 window.updatePeriodAnalysis = updatePeriodAnalysis;
+window.getBMR = getBMR;

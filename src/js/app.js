@@ -51,6 +51,11 @@ function initApp() {
         initProfileFields();        // その後に値を流し込む
         initActivitySegmentLogic();
         initCalendarSegmentLogic();
+        
+        // [Phase 31] 初期プロフィールサマリーの更新
+        updateProfileSummary();
+        if (state.setupComplete) toggleProfileEdit(false);
+        
         renderApp();
         
         // [Phase 16] 起動時のタブを確実に反映（初回は settings、2回目以降は dashboard）
@@ -187,6 +192,57 @@ function initProfileFields() {
     
     // ピッカーの位置を同期
     syncAllPickers();
+
+    // [Phase 31] サマリー表示も最新にする
+    updateProfileSummary();
+}
+
+/**
+ * プロフィールの閲覧・編集モードを切り替えます。
+ */
+function toggleProfileEdit(isEditing) {
+    const summaryArea = document.getElementById('profile-summary-area');
+    const editArea = document.getElementById('profile-edit-area');
+    if (!summaryArea || !editArea) return;
+
+    if (isEditing) {
+        summaryArea.classList.add('hidden');
+        editArea.style.display = 'flex';
+        // 編集に入る瞬間にピッカーを再同期して、ズレがないようにする
+        syncAllPickers();
+    } else {
+        summaryArea.classList.remove('hidden');
+        editArea.style.display = 'none';
+        updateProfileSummary();
+    }
+}
+
+/**
+ * 現在のプロフィール設定値を読み取り、サマリー画面に反映させます。
+ */
+function updateProfileSummary() {
+    const p = state.profile;
+    const genderEl = document.getElementById('summary-gender');
+    const ageEl = document.getElementById('summary-age');
+    const heightEl = document.getElementById('summary-height');
+    const weightEl = document.getElementById('summary-weight');
+    const bmrEl = document.getElementById('summary-bmr');
+    const targetEl = document.getElementById('summary-target');
+
+    if (!genderEl) return;
+
+    genderEl.textContent = p.gender === 'male' ? t('set_male') : t('set_female');
+    ageEl.textContent = p.age;
+    heightEl.textContent = p.height;
+    weightEl.textContent = p.weight;
+
+    // BMRと目標カロリーの計算
+    if (window.getBMR) {
+        const bmr = Math.round(window.getBMR());
+        const target = Math.round(bmr * parseFloat(p.pal || 1.75));
+        bmrEl.textContent = bmr;
+        targetEl.textContent = target;
+    }
 }
 
 /**
@@ -194,6 +250,8 @@ function initProfileFields() {
  */
 function nLabel(key, val, unit = 'g') {
     const colors = {
+        'dash_cal_today': '#60a5fa', // Blue (intake)
+        'cal_intake_detailed': '#60a5fa', // Blue (detailed)
         'dash_protein': '#60a5fa', // Blue
         'dash_fat': '#facc15',     // Yellow
         'dash_carbs': '#fb923c',   // Orange
@@ -375,6 +433,11 @@ function saveProfile(showAlert = true) {
         pal: palVal
     };
     setState({ profile });
+    
+    // [Phase 31] 保存後はサマリーを更新して閲覧モードに戻る
+    updateProfileSummary();
+    toggleProfileEdit(false);
+    
     if (showAlert) alert(t('msg_saved_prof'));
 }
 

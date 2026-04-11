@@ -1309,3 +1309,80 @@ h3,
 .hidden {
     display: none !important;
 }
+
+/* Profile Summary Card */
+.profile-summary-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.summary-item {
+    font-size: 14px;
+    color: var(--text-main);
+}
+
+.summary-item .label {
+    color: var(--text-secondary);
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.summary-stats-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    margin: 15px 0;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.stat-val {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+}
+
+.stat-val .unit {
+    font-size: 12px;
+    font-weight: 400;
+    margin-left: 2px;
+}
+
+.stat.highlight .stat-val {
+    color: var(--accent-primary);
+    font-size: 24px;
+}
+
+#profile-edit-area.hidden {
+    display: none !important;
+}
+
+#profile-summary-area.hidden {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    .summary-stats-box {
+        grid-template-columns: 1fr;
+    }
+}

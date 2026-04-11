@@ -52,6 +52,7 @@ const translations = {
         "cal_stats_title": "期間の統計",
         "cal_no_record": "の記録はありません。",
         "cal_intake": "摂取",
+        "cal_intake_detailed": "摂取カロリー",
         "cal_burn": "消費",
 
         // Meal Log
@@ -93,6 +94,10 @@ const translations = {
         "set_pal_low": "低い (1.5)",
         "set_pal_mid": "ふつう (1.75)",
         "set_pal_hi": "高い (2.0)",
+        "set_summary_title": "現在のパーソナル設定",
+        "set_bmr_label": "基礎代謝 (推定)",
+        "set_target_cal_label": "1日の目標摂取カロリー",
+        "set_btn_edit": "プロフィールを変更する",
         "set_btn_calc": "設定を保存して計算する",
         "set_ai_title": "2. AI解析の設定",
         "set_ai_desc": "Gemini APIの利用には専用のキーが必要です。<br><a href='https://aistudio.google.com/app/apikey' target='_blank' style='color: var(--accent-primary); font-weight: bold; text-decoration: underline;'>Google AI Studio (こちらをクリック)</a> で無料で取得できます。",
@@ -221,6 +226,7 @@ const translations = {
         "cal_stats_title": "Period Stats",
         "cal_no_record": "No record for",
         "cal_intake": "Intake",
+        "cal_intake_detailed": "Intake Calories",
         "cal_burn": "Burned",
 
         "meal_mode_photo": "Photo AI",
@@ -259,6 +265,10 @@ const translations = {
         "set_pal_low": "Low (1.5)",
         "set_pal_mid": "Mid (1.75)",
         "set_pal_hi": "High (2.0)",
+        "set_summary_title": "Current Profile",
+        "set_bmr_label": "BMR (Estimated)",
+        "set_target_cal_label": "Daily Target",
+        "set_btn_edit": "Modify Profile",
         "set_btn_calc": "Save & Calculate",
         "set_ai_title": "2. AI API Settings",
         "set_ai_desc": "A Gemini API Key is required to use the AI analysis.<br>You can <a href='https://aistudio.google.com/app/apikey' target='_blank' style='color: var(--accent-primary); font-weight: bold; text-decoration: underline;'>get it for free at Google AI Studio</a>.",
