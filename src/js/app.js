@@ -9,7 +9,8 @@ const state = {
     detectedModel: localStorage.getItem('detected_model') || 'gemini-1.5-flash',
     setupComplete: localStorage.getItem('nutri_setup_complete') === 'true',
     viewDate: new Date(),
-    isUpdating: false
+    isUpdating: false,
+    isInitializing: true
 };
 
 const METS_MAP = { walking: 3.5, jogging: 7.0, cycling: 4.0, cleaning: 3.3, stairs: 4.0, training: 5.0 };
@@ -51,6 +52,7 @@ function initApp() {
         
         // [Phase 16] 起動時のタブを確実に反映（初回は settings、2回目以降は dashboard）
         switchTab(state.activeTab);
+        state.isInitializing = false;
     } catch (e) {
         console.error("Master, initialization failed:", e);
     }
@@ -320,6 +322,7 @@ function scrollToValue(container, val) {
 }
 
 function saveProfile(showAlert = true) {
+    if (state.isInitializing) return; // 初期化中の予期せぬ上書きを防止
     const profile = {
         gender: document.getElementById('profile-gender').value,
         age: parseInt(document.getElementById('profile-age').value) || 30,

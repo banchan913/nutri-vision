@@ -30,11 +30,19 @@
     font-family: 'Inter', sans-serif;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     background-color: var(--bg-main);
     color: var(--text-main);
-    overflow: hidden;
-    /* App-like feel */
+    overflow: hidden; /* App-like feel */
+    height: 100%;
+    /* モバイルブラウザのアドレスバー考慮 */
+    height: -webkit-fill-available;
 }
 
 h1,
@@ -47,6 +55,8 @@ h3,
 #app {
     display: flex;
     height: 100vh;
+    height: 100dvh; /* Dynamic Viewport Height for mobile */
+    width: 100%;
 }
 
 /* Sidebar Navigation */
@@ -1200,7 +1210,8 @@ h3,
 
     .content-area {
         padding: 20px;
-        padding-bottom: 120px;
+        padding-top: calc(20px + env(safe-area-inset-top));
+        padding-bottom: calc(120px + env(safe-area-inset-bottom));
         /* ボトムナビの高さ分 + 余裕を確保 */
         width: 100%;
         overflow-y: auto;

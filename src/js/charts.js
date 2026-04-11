@@ -1,6 +1,7 @@
 let intakeChart = null;
 let balanceChart = null;
 let weightChart = null;
+let vegFiberChart = null;
 
 function getBMR() {
     const { gender, age, height, weight } = state.profile;
@@ -87,6 +88,9 @@ function calculateAndDisplayStats() {
     updateCard('today-fiber', totals.fiber, targets.fiber, 'g', 'fiber');
     updateCard('today-veg', totals.veg, targets.veg, 'g', 'veg');
     updateCard('today-gyveg', totals.gyVeg, targets.gyVeg, 'g', 'gyVeg');
+
+    // [New] 充足度グラフの更新 (今日1日の分)
+    renderVegFiberChart(totals, targets);
 }
 
 function updateCharts() {
@@ -275,6 +279,78 @@ function renderWeightChart(labels, weights) {
             }
         }]
     });
+}
+
+function renderVegFiberChart(totals, targets) {
+    const ctx = document.getElementById('vegFiberChart')?.getContext('2d');
+    if (!ctx) return;
+    if (vegFiberChart) vegFiberChart.destroy();
+
+    const dataArr = [
+        { label: t('dash_veg'), val: totals.veg, target: targets.veg, color: '#4ade80' },
+        { label: t('dash_fiber'), val: totals.fiber, target: targets.fiber, color: '#3b82f6' },
+        { label: t('dash_gyveg'), val: totals.gyVeg, target: targets.gyVeg, color: '#fb923c' }
+    ];
+
+    vegFiberChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dataArr.map(d => d.label),
+            datasets: [{
+                data: dataArr.map(d => Math.min((d.val / d.target) * 100, 150)), // 最大150%まで表示
+                backgroundColor: dataArr.map(d => d.val >= d.target ? d.color : '#64748b'),
+                borderRadius: 6,
+                barThickness: 24
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    max: 150,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#94a3b8', callback: v => v + '%' }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { color: '#cbd5e1', font: { weight: 'bold' } }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => {
+                            const d = dataArr[c.dataIndex];
+                            return `${d.val.toFixed(1)} / ${d.target}g (${Math.round((d.val/d.target)*100)}%)`;
+                        }
+                    }
+                }
+            }
+        },
+        plugins: [{
+            id: 'achievementLabel',
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                ctx.save();
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'right';
+                const meta = chart.getDatasetMeta(0);
+                meta.data.forEach((element, index) => {
+                    const ratio = Math.round((dataArr[index].val / dataArr[index].target) * 100);
+                    ctx.fillText(ratio + '%', element.x - 10, element.y + 5);
+                });
+                ctx.restore();
+            }
+        }]
+    });
+}
+
+function updateWeightTrend(labels, weights) { // 既存の renderWeightChart への橋渡し用など
+    renderWeightChart(labels, weights);
 }
 
 function updateAnalysisText(intakeArr, targetArr) {

@@ -35,8 +35,10 @@ const translations = {
         "chart1_desc": "目標を越えていないか、毎日の食事量を確認します。",
         "chart2_title": "2. 三大栄養バランスの質",
         "chart2_desc": "理想の比率（たんぱく質:15% 脂質:25% 炭水化物:60%）に近いほど健康的です。",
-        "chart3_title": "3. 体重の推移トレンド",
-        "chart3_desc": "食事と運動による、なだらかな体重の変化を追跡します。",
+        "chart3_title": "3. 野菜・食物繊維の充足状況 (今日)",
+        "chart3_desc": "健康日本21が推奨する目標値（野菜350g、緑黄色120g、食物繊維18-21g）の達成度です。",
+        "chart4_title": "4. 体重の推移トレンド",
+        "chart4_desc": "食事と運動による、なだらかな体重の変化を追跡します。",
 
         // Calendar
         "cal_selected": "選択した日の記録",
@@ -196,8 +198,10 @@ const translations = {
         "chart1_desc": "Check your daily meal limit.",
         "chart2_title": "2. Macronutrient Quality",
         "chart2_desc": "Healthy ratios (Protein:15% Fat:25% Carbs:60%).",
-        "chart3_title": "3. Weight Trend",
-        "chart3_desc": "Track smooth weight changes.",
+        "chart3_title": "3. Vegetable & Fiber Achievement (Today)",
+        "chart3_desc": "Progress against 'Health Japan 21' targets (Veg 350g, GY Veg 120g, Fiber 18-21g).",
+        "chart4_title": "4. Weight Trend",
+        "chart4_desc": "Track smooth weight changes.",
 
         "cal_selected": "Selected Day Log",
         "cal_select_help": "Select a date to view",
