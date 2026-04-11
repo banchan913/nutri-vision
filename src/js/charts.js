@@ -149,18 +149,24 @@ function updatePeriodAnalysis() {
     if (!state.selectedDateKey) return;
     const scope = state.calendarScope || 'day';
     const targetDate = new Date(state.selectedDateKey);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // 今日の終わりまでを範囲にする
 
     let start, end;
     if (scope === 'day') {
         start = end = targetDate;
     } else if (scope === 'week') {
-        start = new Date(targetDate);
-        start.setDate(targetDate.getDate() - targetDate.getDay());
-        end = new Date(start);
-        end.setDate(start.getDate() + 6);
+        // 今日から過去7日間
+        end = today;
+        start = new Date(today);
+        start.setDate(today.getDate() - 6);
+        start.setHours(0, 0, 0, 0);
     } else if (scope === 'month') {
-        start = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-        end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+        // 今日から過去30日間
+        end = today;
+        start = new Date(today);
+        start.setDate(today.getDate() - 29);
+        start.setHours(0, 0, 0, 0);
     } else if (scope === 'custom') {
         const startVal = document.getElementById('cal-range-start').value;
         const endVal = document.getElementById('cal-range-end').value;
@@ -174,21 +180,12 @@ function updatePeriodAnalysis() {
     const data = useTotal ? totals : avgs;
     const dayMult = useTotal ? days : 1;
 
-    const bmr = getBMR();
-    const pal = parseFloat(state.profile.pal || 1.75);
-    const targetBMR = bmr * pal * dayMult;
-
-    const targets = {
-        p: ((bmr * pal * 0.15) / 4) * dayMult,
-        f: ((bmr * pal * 0.25) / 9) * dayMult,
-        c: ((bmr * pal * 0.60) / 4) * dayMult,
-        salt: (state.profile.gender === 'male' ? 7.5 : 6.5) * dayMult,
-        fiber: (state.profile.gender === 'male' ? 21 : 18) * dayMult,
-        veg: 350 * dayMult,
-        gyVeg: 120 * dayMult
-    };
-
-    const labelSuffix = useTotal ? `合計 (${days}日間)` : '';
+    let labelSuffix = '';
+    if (useTotal) {
+        if (scope === 'week') labelSuffix = `直近7日間 合計`;
+        else if (scope === 'month') labelSuffix = `直近30日間 合計`;
+        else labelSuffix = `${days}日間 合計`;
+    }
     const fulfillmentItems = [
         { label: `${t('cal_intake_detailed')} ${labelSuffix}`, val: data.calories, target: targetBMR, unit: 'kcal', color: '#60a5fa' },
         { label: t('dash_protein'), val: data.p, target: targets.p, unit: 'g', color: '#60a5fa' },
