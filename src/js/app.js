@@ -10,7 +10,9 @@ const state = {
     setupComplete: localStorage.getItem('nutri_setup_complete') === 'true',
     viewDate: new Date(),
     isUpdating: false,
-    isInitializing: true
+    isInitializing: true,
+    calendarScope: 'day',
+    selectedDateKey: toCanonical(new Date().toLocaleDateString('ja-JP'))
 };
 
 const METS_MAP = { walking: 3.5, jogging: 7.0, cycling: 4.0, cleaning: 3.3, stairs: 4.0, training: 5.0 };
@@ -48,6 +50,7 @@ function initApp() {
         initProfileFields();
         initProfileSegmentLogic();
         initActivitySegmentLogic();
+        initCalendarSegmentLogic();
         renderApp();
         
         // [Phase 16] 起動時のタブを確実に反映（初回は settings、2回目以降は dashboard）
@@ -179,6 +182,23 @@ function initProfileFields() {
     
     // ピッカーの位置を同期
     syncAllPickers();
+}
+
+/**
+ * 栄養素ごとのカラー付きラベルを生成します。
+ */
+function nLabel(key, val, unit = 'g') {
+    const colors = {
+        'dash_protein': '#60a5fa', // Blue
+        'dash_fat': '#facc15',     // Yellow
+        'dash_carbs': '#fb923c',   // Orange
+        'dash_salt_today': '#f87171', // Red/Warning
+        'dash_veg': '#4ade80',     // Green
+        'dash_fiber': '#3b82f6',   // Sky Blue
+        'dash_gyveg': '#10b981'    // Deep Green
+    };
+    const color = colors[key] || 'inherit';
+    return `<span style="color: ${color}; font-weight: 500;">${t(key)}</span>: ${val}${unit}`;
 }
 
 function syncSegmentButton(parentId, val) {
@@ -522,10 +542,10 @@ function renderDayDetailsByDate(dateKey, label) {
         <div class="day-summary-banner detailed">
             <div class="main-total">${t('cal_intake')}: <strong>${mTotal.cal} kcal</strong> / ${t('cal_burn')}: <strong style="color:var(--accent-success)">${aBurn} kcal</strong></div>
             <div class="sub-total">
-                <span>${t('dash_protein')}: ${mTotal.p.toFixed(1)}g</span>
-                <span>${t('dash_fat')}: ${mTotal.f.toFixed(1)}g</span>
-                <span>${t('dash_carbs')}: ${mTotal.c.toFixed(1)}g</span><br>
-                <span style="color:var(--accent-warning)">${t('dash_salt_today')}: ${mTotal.salt.toFixed(1)}g</span>
+                <span>${nLabel('dash_protein', mTotal.p.toFixed(1))}</span>
+                <span>${nLabel('dash_fat', mTotal.f.toFixed(1))}</span>
+                <span>${nLabel('dash_carbs', mTotal.c.toFixed(1))}</span><br>
+                <span>${nLabel('dash_salt_today', mTotal.salt.toFixed(1))}</span>
             </div>
         </div>
         <h4 style="margin: 15px 0 10px; font-size:14px; color:var(--text-secondary);">食事の記録</h4>
@@ -541,12 +561,13 @@ function renderDayDetailsByDate(dateKey, label) {
                     </div>
                     <div class="h-stats-grid">
                         <div style="grid-column: span 2; font-weight:700;">${e.calories} kcal</div>
-                        <div>${t('dash_protein')}: ${e.p}g</div>
-                        <div>${t('dash_fat')}: ${e.f}g</div>
-                        <div>${t('dash_carbs')}: ${e.c}g</div>
-                        <div>${t('dash_salt_today')}: ${e.salt || 0}g</div>
-                        <div style="color:var(--accent-success)">${t('dash_veg')}: ${e.veg || 0}g</div>
-                        <div style="color:var(--accent-primary)">${t('dash_fiber')}: ${e.fiber || 0}g</div>
+                        <div>${nLabel('dash_protein', e.p)}</div>
+                        <div>${nLabel('dash_fat', e.f)}</div>
+                        <div>${nLabel('dash_carbs', e.c)}</div>
+                        <div>${nLabel('dash_salt_today', e.salt || 0)}</div>
+                        <div>${nLabel('dash_veg', e.veg || 0)}</div>
+                        <div>${nLabel('dash_fiber', e.fiber || 0)}</div>
+                        <div>${nLabel('dash_gyveg', e.gyVeg || 0)}</div>
                     </div>
                 </div>
             `).join('')}
@@ -558,6 +579,28 @@ function renderDayDetailsByDate(dateKey, label) {
             </div>
         ` : ''}
     `;
+    
+    // [Phase 23] 期間分析の実行
+    state.selectedDateKey = targetKey;
+    if (window.updatePeriodAnalysis) window.updatePeriodAnalysis();
+}
+
+function initCalendarSegmentLogic() {
+    const btns = document.querySelectorAll('#cal-scope-selector .segment-btn');
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.calendarScope = btn.getAttribute('data-val');
+            if (window.updatePeriodAnalysis) window.updatePeriodAnalysis();
+            
+            // 週次・月次の時はリストを隠すと使いやすいという要望対応
+            const list = document.getElementById('day-meals-list');
+            if (list) {
+                list.style.display = (state.calendarScope === 'day') ? 'block' : 'none';
+            }
+        };
+    });
 }
 
 function renderHistoryList() {
@@ -579,10 +622,11 @@ function renderHistoryList() {
             <div class="h-stats-grid">
                 ${h.type === 'meal' 
                     ? `<div style="grid-column: span 2; font-weight:700;">${h.calories} kcal</div>
-                       <div>${t('dash_protein')}: ${h.p}g</div><div>${t('dash_fat')}: ${h.f}g</div><div>${t('dash_carbs')}: ${h.c}g</div>
-                       <div>${t('dash_salt_today')}: ${h.salt || 0}g</div>
-                       <div style="color:var(--accent-success)">${t('dash_veg')}: ${h.veg || 0}g</div>
-                       <div style="color:var(--accent-primary)">${t('dash_fiber')}: ${h.fiber || 0}g</div>` 
+                       <div>${nLabel('dash_protein', h.p)}</div><div>${nLabel('dash_fat', h.f)}</div><div>${nLabel('dash_carbs', h.c)}</div>
+                       <div>${nLabel('dash_salt_today', h.salt || 0)}</div>
+                       <div>${nLabel('dash_veg', h.veg || 0)}</div>
+                       <div>${nLabel('dash_fiber', h.fiber || 0)}</div>
+                       <div>${nLabel('dash_gyveg', h.gyVeg || 0)}</div>` 
                     : `<div>${t('cal_burn')}: <strong>${h.calories}</strong> kcal</div><div>${h.duration} min</div>`
                 }
             </div>

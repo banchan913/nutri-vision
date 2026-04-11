@@ -137,6 +137,125 @@ function updateCharts() {
     updateAnalysisText(datasets.intake, datasets.target);
 }
 
+/**
+ * 任意の期間の栄養素合計・平均を算出します。
+ */
+function getRangeStats(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const dayMeals = state.history.filter(h => {
+        const d = new Date(toCanonical(h.date));
+        return d >= start && d <= end;
+    });
+    
+    const days = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
+    
+    const totals = dayMeals.reduce((acc, meal) => ({
+        calories: acc.calories + meal.calories,
+        p: acc.p + meal.p, f: acc.f + meal.f, c: acc.c + meal.c,
+        salt: acc.salt + (meal.salt || 0),
+        fiber: acc.fiber + (meal.fiber || 0),
+        veg: acc.veg + (meal.veg || 0),
+        gyVeg: acc.gyVeg + (meal.gyVeg || 0)
+    }), { calories: 0, p: 0, f: 0, c: 0, salt: 0, fiber: 0, veg: 0, gyVeg: 0 });
+
+    const avgs = {};
+    Object.keys(totals).forEach(k => avgs[k] = totals[k] / days);
+    
+    return { totals, avgs, days };
+}
+
+/**
+ * カレンダータブの期間分析を実行します。
+ */
+function updatePeriodAnalysis() {
+    if (!state.selectedDateKey) return;
+    const scope = state.calendarScope || 'day';
+    const targetDate = new Date(state.selectedDateKey);
+    
+    let start, end;
+    if (scope === 'day') {
+        start = end = targetDate;
+    } else if (scope === 'week') {
+        start = new Date(targetDate);
+        start.setDate(targetDate.getDate() - targetDate.getDay()); // 日曜日から
+        end = new Date(start);
+        end.setDate(start.getDate() + 6);
+    } else if (scope === 'month') {
+        start = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+        end = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+    }
+
+    const { avgs, totals } = getRangeStats(start, end);
+    const targetBMR = getBMR() * parseFloat(state.profile.pal || 1.75);
+    
+    const targets = {
+        p: (targetBMR * 0.15) / 4,
+        f: (targetBMR * 0.25) / 9,
+        c: (targetBMR * 0.60) / 4,
+        salt: state.profile.gender === 'male' ? 7.5 : 6.5,
+        fiber: state.profile.gender === 'male' ? 21 : 18,
+        veg: 350,
+        gyVeg: 120
+    };
+
+    const container = document.getElementById('cal-charts-container');
+    if (container) container.style.display = 'flex';
+    
+    // 統計サマリーの描画
+    const statsEl = document.getElementById('cal-summary-stats');
+    if (statsEl) {
+        statsEl.style.display = 'grid';
+        const labelStr = (scope === 'day') ? '' : (currentLang === 'ja' ? ' (平均)' : ' (Avg)');
+        statsEl.innerHTML = `
+            <div style="grid-column: span 2; font-weight:700; font-size: 16px;">
+                ${scope === 'day' ? t('cal_intake') : (currentLang === 'ja' ? '期間中の合計' : 'Period Total')}: ${Math.round(totals.calories)} kcal
+            </div>
+            <div><span style="color:#60a5fa; font-weight:500;">${t('dash_protein')}${labelStr}</span>: ${avgs.p.toFixed(1)}g</div>
+            <div><span style="color:#facc15; font-weight:500;">${t('dash_fat')}${labelStr}</span>: ${avgs.f.toFixed(1)}g</div>
+            <div><span style="color:#fb923c; font-weight:500;">${t('dash_carbs')}${labelStr}</span>: ${avgs.c.toFixed(1)}g</div>
+            <div><span style="color:#f87171; font-weight:500;">${t('dash_salt_today')}${labelStr}</span>: ${avgs.salt.toFixed(1)}g</div>
+            <div><span style="color:#4ade80; font-weight:500;">${t('dash_veg')}${labelStr}</span>: ${Math.round(avgs.veg)}g</div>
+            <div><span style="color:#3b82f6; font-weight:500;">${t('dash_fiber')}${labelStr}</span>: ${avgs.fiber.toFixed(1)}g</div>
+            <div><span style="color:#10b981; font-weight:500;">${t('dash_gyveg')}${labelStr}</span>: ${Math.round(avgs.gyVeg)}g</div>
+        `;
+    }
+
+    renderGeneralPfcChart('calPfcChart', avgs, targets);
+    renderVegFiberChart(avgs, targets, 'calVegChart');
+}
+
+let calBalanceChart = null;
+function renderGeneralPfcChart(canvasId, stats, targets) {
+    const ctx = document.getElementById(canvasId)?.getContext('2d');
+    if (!ctx) return;
+    if (calBalanceChart) calBalanceChart.destroy();
+    
+    const totalNutrients = stats.p + stats.f + stats.c;
+    const p = totalNutrients > 0 ? (stats.p / totalNutrients) * 100 : 0;
+    const f = totalNutrients > 0 ? (stats.f / totalNutrients) * 100 : 0;
+    const c = totalNutrients > 0 ? (stats.c / totalNutrients) * 100 : 0;
+
+    calBalanceChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [t('dash_protein'), t('dash_fat'), t('dash_carbs')],
+            datasets: [{
+                data: [p, f, c],
+                backgroundColor: ['#60a5fa', '#facc15', '#fb923c'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8' } },
+                tooltip: { callbacks: { label: (c) => `${c.label}: ${c.raw.toFixed(1)}%` } }
+            }
+        }
+    });
+}
+
 function renderIntakeChart(labels, intake, target) {
     const ctx = document.getElementById('intakeTargetChart')?.getContext('2d');
     if (!ctx) return;
@@ -281,42 +400,41 @@ function renderWeightChart(labels, weights) {
     });
 }
 
-function renderVegFiberChart(totals, targets) {
-    const ctx = document.getElementById('vegFiberChart')?.getContext('2d');
+function renderVegFiberChart(totals, targets, canvasId = 'vegFiberChart') {
+    const ctx = document.getElementById(canvasId)?.getContext('2d');
     if (!ctx) return;
-    if (vegFiberChart) vegFiberChart.destroy();
+    
+    // インスタンス管理
+    if (canvasId === 'vegFiberChart') {
+        if (vegFiberChart) vegFiberChart.destroy();
+    } else {
+        if (window.calVegChartInst) window.calVegChartInst.destroy();
+    }
 
     const dataArr = [
         { label: t('dash_veg'), val: totals.veg, target: targets.veg, color: '#4ade80' },
         { label: t('dash_fiber'), val: totals.fiber, target: targets.fiber, color: '#3b82f6' },
-        { label: t('dash_gyveg'), val: totals.gyVeg, target: targets.gyVeg, color: '#fb923c' }
+        { label: t('dash_gyveg'), val: totals.gyVeg, target: targets.gyVeg, color: '#10b981' }
     ];
 
-    vegFiberChart = new Chart(ctx, {
+    const inst = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: dataArr.map(d => d.label),
             datasets: [{
-                data: dataArr.map(d => Math.min((d.val / d.target) * 100, 150)), // 最大150%まで表示
-                backgroundColor: dataArr.map(d => d.val >= d.target ? d.color : '#64748b'),
+                data: dataArr.map(d => Math.min((d.val / d.target) * 100, 150)), 
+                backgroundColor: dataArr.map(d => d.color),
                 borderRadius: 6,
-                barThickness: 24
+                barThickness: 20
             }]
         },
         options: {
             indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
+            responsive: true, maintainAspectRatio: false,
+            layout: { padding: { right: 40 } },
             scales: {
-                x: {
-                    max: 150,
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#94a3b8', callback: v => v + '%' }
-                },
-                y: {
-                    grid: { display: false },
-                    ticks: { color: '#cbd5e1', font: { weight: 'bold' } }
-                }
+                x: { max: 150, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } },
+                y: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { weight: 'bold' } } }
             },
             plugins: {
                 legend: { display: false },
@@ -331,22 +449,27 @@ function renderVegFiberChart(totals, targets) {
             }
         },
         plugins: [{
-            id: 'achievementLabel',
+            id: 'achievementLabelExternal',
             afterDatasetsDraw(chart) {
                 const { ctx, data } = chart;
                 ctx.save();
                 ctx.font = 'bold 12px Inter, sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'right';
+                ctx.textAlign = 'left';
                 const meta = chart.getDatasetMeta(0);
                 meta.data.forEach((element, index) => {
                     const ratio = Math.round((dataArr[index].val / dataArr[index].target) * 100);
-                    ctx.fillText(ratio + '%', element.x - 10, element.y + 5);
+                    if (ratio > 0) {
+                        ctx.fillStyle = dataArr[index].color;
+                        ctx.fillText(ratio + '%', element.x + 8, element.y + 5);
+                    }
                 });
                 ctx.restore();
             }
         }]
     });
+    
+    if (canvasId === 'vegFiberChart') vegFiberChart = inst;
+    else window.calVegChartInst = inst;
 }
 
 function updateWeightTrend(labels, weights) { // 既存の renderWeightChart への橋渡し用など
@@ -384,3 +507,4 @@ function toCanonical(dStr) {
 
 window.updateCharts = updateCharts;
 window.calculateAndDisplayStats = calculateAndDisplayStats;
+window.updatePeriodAnalysis = updatePeriodAnalysis;
