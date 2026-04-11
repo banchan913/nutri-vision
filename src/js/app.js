@@ -64,6 +64,21 @@ function checkOnboarding() {
 }
 
 function finishSetup() {
+    // [Phase 18] 完了前に現在の各フィールドの値を確実に保存
+    saveProfile(false);
+    
+    // APIキーやURLも念のため現在の入力から確定させる
+    const keyInput = document.getElementById('api-key');
+    if (keyInput) {
+        state.geminiKey = keyInput.value;
+        localStorage.setItem('gemini_api_key', keyInput.value);
+    }
+    const gasInput = document.getElementById('gas-url');
+    if (gasInput) {
+        state.gasUrl = gasInput.value;
+        localStorage.setItem('gas_url', gasInput.value);
+    }
+
     state.setupComplete = true;
     localStorage.setItem('nutri_setup_complete', 'true');
     switchTab('dashboard');
@@ -249,7 +264,12 @@ function initScrollPicker(containerId, min, max, initialValue, callback) {
     container.appendChild(picker);
 
     let isScrolling;
+    let lastValue = initialValue;
+
     container.addEventListener('scroll', () => {
+        // プログラムによるスクロール（isInternalScroll）中は無視する
+        if (container.isInternalScroll) return;
+
         window.clearTimeout(isScrolling);
         isScrolling = setTimeout(() => {
             const center = container.scrollLeft + (container.offsetWidth / 2);
@@ -263,13 +283,17 @@ function initScrollPicker(containerId, min, max, initialValue, callback) {
                     minDiff = diff;
                     closest = item;
                 }
-                item.classList.remove('selected');
             });
 
             if (closest) {
-                closest.classList.add('selected');
                 const val = closest.getAttribute('data-val');
-                callback(val);
+                if (val !== lastValue) {
+                    lastValue = val;
+                    // 他のアイテムの選択クラスをリセット
+                    container.querySelectorAll('.picker-item').forEach(i => i.classList.remove('selected'));
+                    closest.classList.add('selected');
+                    callback(val);
+                }
             }
         }, 100);
     });
@@ -281,12 +305,17 @@ function initScrollPicker(containerId, min, max, initialValue, callback) {
 function scrollToValue(container, val) {
     const target = container.querySelector(`.picker-item[data-val="${val}"]`);
     if (target) {
+        container.isInternalScroll = true; // フラグを立ててリスナーを抑制
         const offset = target.offsetLeft - (container.offsetWidth / 2) + (target.offsetWidth / 2);
+        
         container.scrollTo({ left: offset, behavior: 'smooth' });
         
         // 選択表示の即時反映
         container.querySelectorAll('.picker-item').forEach(item => item.classList.remove('selected'));
         target.classList.add('selected');
+        
+        // スムーススクロール完了を待ってからフラグを解除（簡易的に500ms）
+        setTimeout(() => { container.isInternalScroll = false; }, 500);
     }
 }
 
@@ -602,8 +631,15 @@ async function testGeminiConnection() {
         flashModels.forEach(m => {
             const mName = m.name.replace('models/', ''); const isRec = mName.includes('lite') || mName.includes('1.5');
             const mBtn = document.createElement('button'); mBtn.className = isRec ? 'btn btn-recommended' : 'btn btn-secondary'; mBtn.style.margin = '4px'; mBtn.textContent = isRec ? `${mName}${currentLang === 'ja' ? '（推奨）' : ' (Rec)'}` : mName;
+            mBtn.setAttribute('data-model', mName);
             if (mName === state.detectedModel) mBtn.style.boxShadow = '0 0 0 2px var(--accent-primary)';
-            mBtn.onclick = () => { state.detectedModel = mName; localStorage.setItem('detected_model', mName); testGeminiConnection(); }; resDiv.appendChild(mBtn);
+            mBtn.onclick = () => { 
+                state.detectedModel = mName; 
+                localStorage.setItem('detected_model', mName);
+                // 全描画し直すとチラつくため、クラス/スタイルだけ更新
+                resDiv.querySelectorAll('button').forEach(b => b.style.boxShadow = '');
+                mBtn.style.boxShadow = '0 0 0 2px var(--accent-primary)';
+            }; resDiv.appendChild(mBtn);
         });
     } catch (e) { resDiv.innerHTML = `${currentLang === 'ja' ? '接続失敗' : 'Failed'}: ${e.message}`; }
 }
