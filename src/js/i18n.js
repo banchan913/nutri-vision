@@ -154,6 +154,7 @@ const translations = {
         "msg_need_apikey": "AI解析の準備（APIキー）をお願いいたします。",
         "msg_gas_pro_only": "クラウド同期（GAS）は、note配布の『Pro版限定』機能です。設定マニュアルと専用コードはnoteでご案内しています。ぜひチェックしてみてくださいね！",
         "msg_copied_gas": "同期用スクリプトをお預かりしました。これをスプレッドシート側に貼り付けてくださいね。",
+        "meal_note_placeholder": "ここにメッセージを入力（例：鶏肉200g、油不使用）",
 
         // Gemini
         "ai_status_analyzing": "大切に解析しています...",
@@ -337,7 +338,7 @@ const translations = {
         "msg_delete_meal": "Delete this meal?",
         "msg_need_apikey": "Enter API Key first.",
         "msg_gas_pro_only": "Cloud Sync (GAS) is a 'Pro Version' exclusive. The setup guide and special script are available on note. Please check it out!",
-        "msg_copied_gas": "GAS Script Copied!",
+        "msg_copied_gas": "Google Apps Script code has been copied! Please paste it into your spreadsheet script editor.",
 
         "ai_status_analyzing": "AI is analyzing...",
         "ai_status_almost": "Almost done...",
