@@ -48,42 +48,13 @@
             <div id="tab-container">
                 <!-- Dashboard Tab -->
                 <section id="dashboard-tab" class="tab-pane active">
-                    <div class="stats-grid">
-                        <div class="stat-card calories">
-                            <div class="card-title" data-i18n="dash_cal_today">摂取エネルギー (今日)</div>
-                            <div id="today-calories" class="card-value">0 <span class="unit">kcal</span></div>
-                            <div class="card-progress"><div class="progress-bar" id="calorie-progress" style="width: 0%;"></div></div>
-                            <div class="card-target" id="calorie-target-display">目標: -- kcal</div>
-                        </div>
-                        <div class="stat-card pfc">
-                            <div class="card-title" data-i18n="dash_pfc">三大栄養素バランス</div>
-                            <div class="pfc-values">
-                                <div class="pfc-item"><span data-i18n="dash_protein">たんぱく質</span> <div id="today-p" class="card-value">0 <span class="unit">g</span></div></div>
-                                <div class="pfc-item"><span data-i18n="dash_fat">脂質</span> <div id="today-f" class="card-value">0 <span class="unit">g</span></div></div>
-                                <div class="pfc-item"><span data-i18n="dash_carbs">炭水化物</span> <div id="today-c" class="card-value">0 <span class="unit">g</span></div></div>
+                    <div class="charts-container" style="display: flex; flex-direction: column; gap: 30px; margin-top: 10px;">
+                        <div class="chart-box">
+                            <div class="chart-header">
+                                <h3 data-i18n="dash_fulfillment_today">今日の目標達成状況</h3>
                             </div>
+                            <div style="height: 300px;"><canvas id="dashboardNutrientChart"></canvas></div>
                         </div>
-                        <div class="stat-card salt">
-                            <div class="card-title" data-i18n="dash_salt_today">食塩相当量 (今日)</div>
-                            <div id="today-salt" class="card-value">0.0 <span class="unit">g</span></div>
-                            <div class="card-progress"><div class="progress-bar salt-bar" id="salt-progress" style="width: 0%;"></div></div>
-                            <div class="card-target" id="salt-target-display">目標: -- g</div>
-                        </div>
-                        <div class="stat-card veg" style="grid-column: span 2;">
-                            <div class="card-title" data-i18n="dash_veg_fiber">食物繊維・野菜類</div>
-                            <div class="pfc-values">
-                                <div class="pfc-item"><span data-i18n="dash_veg">野菜(総量)</span> <div id="today-veg" class="card-value">0 <span class="unit">g</span></div></div>
-                                <div class="pfc-item"><span data-i18n="dash_fiber">食物繊維</span> <div id="today-fiber" class="card-value">0 <span class="unit">g</span></div></div>
-                                <div class="pfc-item"><span data-i18n="dash_gyveg">うち緑黄色</span> <div id="today-gyveg" class="card-value">0 <span class="unit">g</span></div></div>
-                            </div>
-                        </div>
-                        <div class="stat-card weight">
-                            <div class="card-title" data-i18n="dash_burn_today">消費エネルギー (今日)</div>
-                            <div id="today-burned" class="card-value">0 <span class="unit">kcal</span></div>
-                            <div class="card-trend"><i class="ph ph-fire"></i> <span data-i18n="dash_burn_ext">運動による消費</span></div>
-                        </div>
-                    </div>
-                    <div class="charts-container" style="display: flex; flex-direction: column; gap: 30px; margin-top: 20px;">
                         <div class="chart-box">
                             <div class="chart-header">
                                 <h3 data-i18n="chart1_title">1. カロリー収支：摂取 vs 目標</h3>
@@ -140,10 +111,7 @@
                             <div class="segment-btn" data-val="month" data-i18n="cal_scope_month">月次</div>
                         </div>
 
-                        <!-- 統計サマリー -->
-                        <div id="cal-summary-stats" class="h-stats-grid" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none;">
-                            <!-- JSで流し込む -->
-                        </div>
+                        <!-- グラフ表示エリア -->
 
                         <!-- グラフ表示エリア -->
                         <div id="cal-charts-container" class="charts-container" style="display: none; flex-direction: column; gap: 20px; margin-bottom: 20px;">

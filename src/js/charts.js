@@ -12,86 +12,17 @@ function getBMR() {
     }
 }
 
-function calculateAndDisplayStats() {
-    const today = toCanonical(new Date().toLocaleDateString('ja-JP'));
-    const todayMeals = state.history.filter(h => toCanonical(h.date) === today);
-    const todayActs = state.activities.filter(a => toCanonical(a.date) === today);
+// [Phase 26] 充足度グラフを横棒グラフで統一
+const fulfillmentItems = [
+    { label: t('cal_intake'), val: totals.calories, target: dailyTarget, unit: 'kcal', color: '#60a5fa' },
+    { label: t('dash_protein'), val: totals.p, target: targets.p, unit: 'g', color: '#60a5fa' },
+    { label: t('dash_fat'), val: totals.f, target: targets.f, unit: 'g', color: '#facc15' },
+    { label: t('dash_carbs'), val: totals.c, target: targets.c, unit: 'g', color: '#fb923c' },
+    { label: t('dash_salt_today'), val: totals.salt, target: targets.salt, unit: 'g', color: '#f87171' }
+];
+renderFulfillmentChart('dashboardNutrientChart', fulfillmentItems);
+renderVegFiberChart(totals, targets);
 
-    const totals = todayMeals.reduce((acc, meal) => ({
-        calories: acc.calories + meal.calories,
-        p: acc.p + meal.p,
-        f: acc.f + meal.f,
-        c: acc.c + meal.c,
-        salt: acc.salt + (meal.salt || 0),
-        fiber: acc.fiber + (meal.fiber || 0),
-        veg: acc.veg + (meal.veg || 0),
-        gyVeg: acc.gyVeg + (meal.gyVeg || 0)
-    }), { calories: 0, p: 0, f: 0, c: 0, salt: 0, fiber: 0, veg: 0, gyVeg: 0 });
-
-    const totalBurned = todayActs.reduce((acc, act) => acc + act.calories, 0);
-    const bmr = getBMR();
-    const pal = parseFloat(state.profile.pal || 1.75);
-    const dailyTarget = Math.round(bmr * pal) + totalBurned;
-
-    const targets = {
-        p: (dailyTarget * 0.15) / 4,
-        f: (dailyTarget * 0.25) / 9,
-        c: (dailyTarget * 0.60) / 4,
-        salt: state.profile.gender === 'male' ? 7.5 : 6.5,
-        fiber: state.profile.gender === 'male' ? 21 : 18,
-        veg: 350,
-        gyVeg: 120
-    };
-
-    const applyStatusColor = (val, target, type) => {
-        if (type === 'salt') {
-            if (val > target * 1.5) return 'status-red';
-            if (val > target) return 'status-yellow';
-            return 'status-blue';
-        }
-        if (type === 'fiber' || type === 'veg' || type === 'gyVeg') {
-            if (val >= target) return 'status-blue';
-            if (val >= target * 0.5) return 'status-yellow';
-            return 'status-red';
-        }
-        const diff = (val / target);
-        if (diff >= 0.8 && diff <= 1.2) return 'status-blue';
-        if (diff > 1.2) return 'status-yellow';
-        return '';
-    };
-
-    const calEl = document.getElementById('today-calories');
-    const burnEl = document.getElementById('today-burned');
-    if (calEl) calEl.innerHTML = `${totals.calories} <span class="unit">/ ${dailyTarget} kcal</span>`;
-    if (burnEl) burnEl.innerHTML = `${totalBurned} <span class="unit">kcal</span>`;
-
-    const calProgress = document.getElementById('calorie-progress');
-    const saltProgress = document.getElementById('salt-progress');
-    const calTargetLink = document.getElementById('calorie-target-display');
-    const saltTargetLink = document.getElementById('salt-target-display');
-
-    if (calProgress) calProgress.style.width = Math.min((totals.calories / dailyTarget) * 100, 100) + '%';
-    if (saltProgress) saltProgress.style.width = Math.min((totals.salt / targets.salt) * 100, 100) + '%';
-    if (calTargetLink) calTargetLink.textContent = `${t('target_prefix')}${dailyTarget} kcal`;
-    if (saltTargetLink) saltTargetLink.textContent = `${t('target_prefix')}${targets.salt.toFixed(1)} g`;
-
-    const updateCard = (id, val, target, unit, type) => {
-        const el = document.getElementById(id); if (!el) return;
-        el.innerHTML = `${val.toFixed(1)} <span class="unit">/ ${Math.round(target)}${unit}</span>`;
-        el.className = 'card-value ' + applyStatusColor(val, target, type);
-    };
-
-    updateCard('today-p', totals.p, targets.p, 'g', 'p');
-    updateCard('today-f', totals.f, targets.f, 'g', 'f');
-    updateCard('today-c', totals.c, targets.c, 'g', 'c');
-    updateCard('today-salt', totals.salt, targets.salt, 'g', 'salt');
-    updateCard('today-fiber', totals.fiber, targets.fiber, 'g', 'fiber');
-    updateCard('today-veg', totals.veg, targets.veg, 'g', 'veg');
-    updateCard('today-gyveg', totals.gyVeg, targets.gyVeg, 'g', 'gyVeg');
-
-    // [New] 充足度グラフの更新 (今日1日の分)
-    renderVegFiberChart(totals, targets);
-}
 
 function updateCharts() {
     const labels = [];
@@ -147,9 +78,9 @@ function getRangeStats(startDate, endDate) {
         const d = new Date(toCanonical(h.date));
         return d >= start && d <= end;
     });
-    
+
     const days = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1);
-    
+
     const totals = dayMeals.reduce((acc, meal) => ({
         calories: acc.calories + meal.calories,
         p: acc.p + meal.p, f: acc.f + meal.f, c: acc.c + meal.c,
@@ -161,7 +92,7 @@ function getRangeStats(startDate, endDate) {
 
     const avgs = {};
     Object.keys(totals).forEach(k => avgs[k] = totals[k] / days);
-    
+
     return { totals, avgs, days };
 }
 
@@ -172,7 +103,7 @@ function updatePeriodAnalysis() {
     if (!state.selectedDateKey) return;
     const scope = state.calendarScope || 'day';
     const targetDate = new Date(state.selectedDateKey);
-    
+
     let start, end;
     if (scope === 'day') {
         start = end = targetDate;
@@ -188,7 +119,7 @@ function updatePeriodAnalysis() {
 
     const { avgs, totals } = getRangeStats(start, end);
     const targetBMR = getBMR() * parseFloat(state.profile.pal || 1.75);
-    
+
     const targets = {
         p: (targetBMR * 0.15) / 4,
         f: (targetBMR * 0.25) / 9,
@@ -199,60 +130,80 @@ function updatePeriodAnalysis() {
         gyVeg: 120
     };
 
-    const container = document.getElementById('cal-charts-container');
-    if (container) container.style.display = 'flex';
-    
-    // 統計サマリーの描画
-    const statsEl = document.getElementById('cal-summary-stats');
-    if (statsEl) {
-        statsEl.style.display = 'grid';
-        const labelStr = (scope === 'day') ? '' : (currentLang === 'ja' ? ' (平均)' : ' (Avg)');
-        statsEl.innerHTML = `
-            <div style="grid-column: span 2; font-weight:700; font-size: 16px;">
-                ${scope === 'day' ? t('cal_intake') : (currentLang === 'ja' ? '期間中の合計' : 'Period Total')}: ${Math.round(totals.calories)} kcal
-            </div>
-            <div><span style="color:#60a5fa; font-weight:500;">${t('dash_protein')}${labelStr}</span>: ${avgs.p.toFixed(1)}g</div>
-            <div><span style="color:#facc15; font-weight:500;">${t('dash_fat')}${labelStr}</span>: ${avgs.f.toFixed(1)}g</div>
-            <div><span style="color:#fb923c; font-weight:500;">${t('dash_carbs')}${labelStr}</span>: ${avgs.c.toFixed(1)}g</div>
-            <div><span style="color:#f87171; font-weight:500;">${t('dash_salt_today')}${labelStr}</span>: ${avgs.salt.toFixed(1)}g</div>
-            <div><span style="color:#4ade80; font-weight:500;">${t('dash_veg')}${labelStr}</span>: ${Math.round(avgs.veg)}g</div>
-            <div><span style="color:#3b82f6; font-weight:500;">${t('dash_fiber')}${labelStr}</span>: ${avgs.fiber.toFixed(1)}g</div>
-            <div><span style="color:#10b981; font-weight:500;">${t('dash_gyveg')}${labelStr}</span>: ${Math.round(avgs.gyVeg)}g</div>
-        `;
-    }
+    const fulfillmentItems = [
+        { label: t('dash_protein'), val: avgs.p, target: targets.p, unit: 'g', color: '#60a5fa' },
+        { label: t('dash_fat'), val: avgs.f, target: targets.f, unit: 'g', color: '#facc15' },
+        { label: t('dash_carbs'), val: avgs.c, target: targets.c, unit: 'g', color: '#fb923c' },
+        { label: t('dash_salt_today'), val: avgs.salt, target: targets.salt, unit: 'g', color: '#f87171' }
+    ];
 
-    renderGeneralPfcChart('calPfcChart', avgs, targets);
+    renderFulfillmentChart('calPfcChart', fulfillmentItems);
     renderVegFiberChart(avgs, targets, 'calVegChart');
 }
 
-let calBalanceChart = null;
-function renderGeneralPfcChart(canvasId, stats, targets) {
+const fulfillmentCharts = {};
+/**
+ * 高度な横棒充足率グラフ（gと%を同時表示）
+ */
+function renderFulfillmentChart(canvasId, items) {
     const ctx = document.getElementById(canvasId)?.getContext('2d');
     if (!ctx) return;
-    if (calBalanceChart) calBalanceChart.destroy();
-    
-    const totalNutrients = stats.p + stats.f + stats.c;
-    const p = totalNutrients > 0 ? (stats.p / totalNutrients) * 100 : 0;
-    const f = totalNutrients > 0 ? (stats.f / totalNutrients) * 100 : 0;
-    const c = totalNutrients > 0 ? (stats.c / totalNutrients) * 100 : 0;
+    if (fulfillmentCharts[canvasId]) fulfillmentCharts[canvasId].destroy();
 
-    calBalanceChart = new Chart(ctx, {
-        type: 'doughnut',
+    const maxVal = Math.max(...items.map(d => Math.max(d.val, d.target))) * 1.35; // 数値見切れ防止を強化
+
+    fulfillmentCharts[canvasId] = new Chart(ctx, {
+        type: 'bar',
         data: {
-            labels: [t('dash_protein'), t('dash_fat'), t('dash_carbs')],
+            labels: items.map(d => d.label),
             datasets: [{
-                data: [p, f, c],
-                backgroundColor: ['#60a5fa', '#facc15', '#fb923c'],
-                borderWidth: 0
+                data: items.map(d => d.val),
+                backgroundColor: items.map(d => d.color),
+                borderRadius: 6,
+                barThickness: 16
+            }, {
+                // 背景用のターゲットバー
+                data: items.map(d => d.target),
+                backgroundColor: 'rgba(255,255,255,0.05)',
+                borderRadius: 6,
+                barThickness: 16
             }]
         },
         options: {
+            indexAxis: 'y',
             responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { max: maxVal, display: false, grid: { display: false } },
+                y: {
+                    stacked: true,
+                    grid: { display: false },
+                    ticks: { color: '#cbd5e1', font: { weight: 'bold', size: 12 } }
+                }
+            },
             plugins: {
-                legend: { position: 'bottom', labels: { color: '#94a3b8' } },
-                tooltip: { callbacks: { label: (c) => `${c.label}: ${c.raw.toFixed(1)}%` } }
+                legend: { display: false },
+                tooltip: { enabled: false } // 常時表示のため無効化
             }
-        }
+        },
+        plugins: [{
+            id: 'fulfillmentLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                const meta = chart.getDatasetMeta(0);
+                meta.data.forEach((element, index) => {
+                    const d = items[index];
+                    const ratio = Math.round((d.val / d.target) * 100);
+                    ctx.fillStyle = d.color;
+                    // バーの横に 「現在値 / 目標値 (比率)」 を表示
+                    const labelText = `${d.val.toFixed(1)}${d.unit} / ${Math.round(d.target)}${d.unit} (${ratio}%)`;
+                    ctx.fillText(labelText, element.x + 8, element.y + 5);
+                });
+                ctx.restore();
+            }
+        }]
     });
 }
 
@@ -260,6 +211,8 @@ function renderIntakeChart(labels, intake, target) {
     const ctx = document.getElementById('intakeTargetChart')?.getContext('2d');
     if (!ctx) return;
     if (intakeChart) intakeChart.destroy();
+
+    const maxVal = Math.max(...intake, ...target) * 1.25; // ユーザー要望：2500の時に2700まで表示できるようマージンを確保
     intakeChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -273,11 +226,11 @@ function renderIntakeChart(labels, intake, target) {
             responsive: true, maintainAspectRatio: false,
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                y: { max: maxVal, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
             },
             plugins: {
                 legend: { display: false },
-                tooltip: { mode: 'index', intersect: false },
+                tooltip: { enabled: false }, // 棒の上にラベルを出すのでツールチップ不要
                 // 数値を表示するカスタムプラグイン
                 datalabels: {
                     display: true,
@@ -401,75 +354,12 @@ function renderWeightChart(labels, weights) {
 }
 
 function renderVegFiberChart(totals, targets, canvasId = 'vegFiberChart') {
-    const ctx = document.getElementById(canvasId)?.getContext('2d');
-    if (!ctx) return;
-    
-    // インスタンス管理
-    if (canvasId === 'vegFiberChart') {
-        if (vegFiberChart) vegFiberChart.destroy();
-    } else {
-        if (window.calVegChartInst) window.calVegChartInst.destroy();
-    }
-
     const dataArr = [
-        { label: t('dash_veg'), val: totals.veg, target: targets.veg, color: '#4ade80' },
-        { label: t('dash_fiber'), val: totals.fiber, target: targets.fiber, color: '#3b82f6' },
-        { label: t('dash_gyveg'), val: totals.gyVeg, target: targets.gyVeg, color: '#10b981' }
+        { label: t('dash_veg'), val: totals.veg, target: targets.veg, unit: 'g', color: '#4ade80' },
+        { label: t('dash_fiber'), val: totals.fiber, target: targets.fiber, unit: 'g', color: '#3b82f6' },
+        { label: t('dash_gyveg'), val: totals.gyVeg, target: targets.gyVeg, unit: 'g', color: '#10b981' }
     ];
-
-    const inst = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: dataArr.map(d => d.label),
-            datasets: [{
-                data: dataArr.map(d => Math.min((d.val / d.target) * 100, 150)), 
-                backgroundColor: dataArr.map(d => d.color),
-                borderRadius: 6,
-                barThickness: 20
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true, maintainAspectRatio: false,
-            layout: { padding: { right: 40 } },
-            scales: {
-                x: { max: 150, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } },
-                y: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { weight: 'bold' } } }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: (c) => {
-                            const d = dataArr[c.dataIndex];
-                            return `${d.val.toFixed(1)} / ${d.target}g (${Math.round((d.val/d.target)*100)}%)`;
-                        }
-                    }
-                }
-            }
-        },
-        plugins: [{
-            id: 'achievementLabelExternal',
-            afterDatasetsDraw(chart) {
-                const { ctx, data } = chart;
-                ctx.save();
-                ctx.font = 'bold 12px Inter, sans-serif';
-                ctx.textAlign = 'left';
-                const meta = chart.getDatasetMeta(0);
-                meta.data.forEach((element, index) => {
-                    const ratio = Math.round((dataArr[index].val / dataArr[index].target) * 100);
-                    if (ratio > 0) {
-                        ctx.fillStyle = dataArr[index].color;
-                        ctx.fillText(ratio + '%', element.x + 8, element.y + 5);
-                    }
-                });
-                ctx.restore();
-            }
-        }]
-    });
-    
-    if (canvasId === 'vegFiberChart') vegFiberChart = inst;
-    else window.calVegChartInst = inst;
+    renderFulfillmentChart(canvasId, dataArr);
 }
 
 function updateWeightTrend(labels, weights) { // 既存の renderWeightChart への橋渡し用など

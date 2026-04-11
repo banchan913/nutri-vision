@@ -18,6 +18,7 @@ const translations = {
         "btn_save": "保存する",
 
         // Dashboard
+        "dash_fulfillment_today": "栄養素の充足度 (今日)",
         "dash_cal_today": "摂取エネルギー (今日)",
         "dash_pfc": "三大栄養素バランス",
         "dash_protein": "たんぱく質",
@@ -187,6 +188,7 @@ const translations = {
         "btn_cancel": "Cancel",
         "btn_save": "Save",
 
+        "dash_fulfillment_today": "Nutrient Fulfillment (Today)",
         "dash_cal_today": "Energy Intake (Today)",
         "dash_pfc": "Macronutrients Balance",
         "dash_protein": "Protein",

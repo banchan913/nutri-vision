@@ -47,8 +47,8 @@ function initApp() {
 
         initNavigation();
         initSettings();
-        initProfileFields();
-        initProfileSegmentLogic();
+        initProfileSegmentLogic(); // [Phase 25] 先に要素を作る
+        initProfileFields();        // その後に値を流し込む
         initActivitySegmentLogic();
         initCalendarSegmentLogic();
         renderApp();
@@ -78,7 +78,7 @@ function finishSetup() {
     saveProfile(false);
     
     // APIキーやURLも念のため現在の入力から確定させる
-    const keyInput = document.getElementById('api-key');
+    const keyInput = document.getElementById('gemini-key');
     if (keyInput) {
         state.geminiKey = keyInput.value;
         localStorage.setItem('gemini_api_key', keyInput.value);
@@ -330,6 +330,7 @@ function initScrollPicker(containerId, min, max, initialValue, callback) {
 }
 
 function scrollToValue(container, val, isInitial = false) {
+    if (!container) return; // 存在確認
     const target = container.querySelector(`.picker-item[data-val="${val}"]`);
     if (target) {
         container.isInternalScroll = true; // フラグを立ててリスナーを抑制
@@ -562,16 +563,7 @@ function renderDayDetailsByDate(dateKey, label) {
     const mTotal = meals.reduce((s, e) => ({ cal: s.cal + e.calories, p: s.p + e.p, f: s.f + e.f, c: s.c + e.c, salt: s.salt + (e.salt || 0) }), { cal: 0, p: 0, f: 0, c: 0, salt: 0 });
     const aBurn = acts.reduce((s, a) => s + a.calories, 0);
     panel.innerHTML = `
-        <div class="day-summary-banner detailed">
-            <div class="main-total">${t('cal_intake')}: <strong>${mTotal.cal} kcal</strong> / ${t('cal_burn')}: <strong style="color:var(--accent-success)">${aBurn} kcal</strong></div>
-            <div class="sub-total">
-                <span>${nLabel('dash_protein', mTotal.p.toFixed(1))}</span>
-                <span>${nLabel('dash_fat', mTotal.f.toFixed(1))}</span>
-                <span>${nLabel('dash_carbs', mTotal.c.toFixed(1))}</span><br>
-                <span>${nLabel('dash_salt_today', mTotal.salt.toFixed(1))}</span>
-            </div>
-        </div>
-        <h4 style="margin: 15px 0 10px; font-size:14px; color:var(--text-secondary);">食事の記録</h4>
+        <h4 style="margin: 15px 0 10px; font-size:14px; color:var(--text-secondary);">記録詳細</h4>
         <div class="history-list detailed">
             ${meals.map(e => `
                 <div class="history-item-detailed">
