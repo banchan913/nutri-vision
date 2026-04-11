@@ -1,5 +1,5 @@
 // Gemini API Logic
-async function analyzeImage(base64Data, mimeType, mode = 'food') {
+async function analyzeImage(base64Data, mimeType, mode = 'food', additionalText = '') {
     if (!state.geminiKey) { alert('Gemini APIキーを設定画面で入力してください。'); return; }
 
     const status = document.getElementById('analysis-status-global');
@@ -33,9 +33,16 @@ async function analyzeImage(base64Data, mimeType, mode = 'food') {
     const langSuffixStr = currentLang === 'ja' 
         ? "必ず日本の一般的な料理名（例：ラーメン、おにぎり、サラダ）を使用し、日本語で出力してください。"
         : "Output the dish name and properties in English.";
-    const userPrompt = mode === 'food' 
+    
+    let userPrompt = mode === 'food' 
         ? `この食事画像/This food imageを解析してください。${langSuffixStr}`
         : `この栄養成分表示の画像/This nutrition labelを解析してください。全ての項目名を指定された言語で出力してください。${langSuffixStr}`;
+
+    if (additionalText) {
+        userPrompt += currentLang === 'ja'
+            ? `\n\n【ユーザー提供の補足情報】:\n${additionalText}\n\nこの情報を画像解析の参考にし、特に分量や材料が指定されている場合は、画像の見た目よりもこの情報を優先して解析に反映させてください。`
+            : `\n\n[Additional User Info]:\n${additionalText}\n\nUse this information to assist the image analysis. If quantity or specific ingredients are mentioned, prioritize this text over the visual estimation.`;
+    }
 
     const systemPrompt = currentLang === 'ja'
         ? "あなたは日本の栄養管理の専門家です。全ての出力、特に料理名(name)は、必ず日本語で記述してください。各栄養素だけでなく野菜の総重量(g)、うち緑黄色野菜の重量(g)、食物繊維(g)も推測してください。結果は厳密に指定されたJSONフォーマットで回答してください。"
@@ -113,9 +120,11 @@ fileInput.addEventListener('change', async (e) => {
             }
 
             const base64 = reader.result.split(',')[1];
-            const data = await analyzeImage(base64, file.type, state.currentMode || 'food');
+            const additionalText = document.getElementById('meal-note')?.value || '';
+            const data = await analyzeImage(base64, file.type, state.currentMode || 'food', additionalText);
             if (state.gasUrl) await callGAS({ type: 'image', base64: base64, mimeType: file.type });
             showEditModal(data);
+            if (window.showAiMessage) window.showAiMessage(t('ai_analyzed_praising'));
         } catch (err) { 
             console.error(err); 
             const errMsgStr = err.message.toLowerCase();
@@ -339,6 +348,8 @@ function showEditModal(data) {
         
         // フォームのリセットとプレビューの非表示
         document.getElementById('file-input').value = "";
+        const noteEl = document.getElementById('meal-note');
+        if (noteEl) noteEl.value = "";
         document.getElementById('image-preview-container')?.classList.add('preview-hidden');
         
         renderCalendar();

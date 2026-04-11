@@ -201,6 +201,17 @@ h3,
     }
 }
 
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
 /* Stats Cards */
 .stats-grid {
     display: grid;
@@ -938,24 +949,22 @@ h3,
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    scroll-padding-inline: center;
     gap: 15px;
-    padding: 15px 50% 15px 50%;
-    /* パディングを増やして操作しやすく */
+    padding: 15px 50% !important;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    /* 少し境界を明確に */
     border-radius: var(--radius-md);
     margin-top: 15px;
+    width: 100%;
+    max-width: 450px;
     scrollbar-width: none;
-    /* Firefox */
     -ms-overflow-style: none;
-    /* IE/Edge */
     cursor: grab;
 }
 
 .scroll-picker-container::-webkit-scrollbar {
     display: none;
-    /* Chrome/Safari */
 }
 
 .picker-item {
@@ -968,7 +977,7 @@ h3,
     font-weight: 500;
     color: var(--text-secondary);
     scroll-snap-align: center;
-    scroll-snap-stop: always; /* スナップポイントを通り過ぎないように */
+    scroll-snap-stop: normal; /* 1つずつ止まらずに勢いよく回せるように */
     transition: all 0.2s;
     user-select: none;
 }

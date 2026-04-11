@@ -32,6 +32,79 @@ function setState(newState) {
     renderApp();
 }
 
+/**
+ * 賢明なるマスター、各コンポーネントの再描画を一手に引き受ける枢要なる関数です。
+ */
+function renderApp() {
+    // 1. 各統計の更新（依存関係があるためwindow経由で存在確認）
+    if (window.updateDashboardStats) {
+        window.updateDashboardStats();
+    }
+
+    // 2. アクティブなタブに応じた更新
+    if (state.activeTab === 'dashboard') {
+        if (window.updateCharts) window.updateCharts();
+    } else if (state.activeTab === 'calendar') {
+        if (window.renderCalendar) window.renderCalendar();
+    } else if (state.activeTab === 'history') {
+        if (window.renderHistoryList) window.renderHistoryList();
+    }
+
+    // 3. その他同期
+    if (window.updateUserStatus) window.updateUserStatus();
+}
+
+/**
+ * 寄り添うスタッフからのメッセージを表示します
+ */
+function showAiMessage(text, duration = 5000) {
+    let container = document.getElementById('ai-message-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'ai-message-container';
+        container.style = 'position:fixed; bottom:85px; left:50%; transform:translateX(-50%); z-index:9999; width:90%; max-width:400px; pointer-events:none;';
+        document.body.appendChild(container);
+    }
+
+    const msg = document.createElement('div');
+    msg.className = 'ai-toast';
+    msg.style = 'background:rgba(30,41,59,0.95); backdrop-filter:blur(10px); color:white; padding:12px 16px; border-radius:16px; margin-top:10px; border:1px solid rgba(255,255,255,0.1); box-shadow:0 10px 25px rgba(0,0,0,0.3); display:flex; align-items:flex-start; gap:12px; animation: slideUp 0.4s ease-out; pointer-events:auto;';
+    
+    // 寄り添うスタッフのアイコン（絵文字）
+    const icon = '👩‍⚕️'; 
+    msg.innerHTML = `
+        <div style="font-size:24px;">${icon}</div>
+        <div style="font-size:13px; line-height:1.5; font-weight:500;">${text}</div>
+    `;
+
+    container.appendChild(msg);
+
+    // フェードアウトと削除
+    setTimeout(() => {
+        msg.style.opacity = '0';
+        msg.style.transform = 'translateY(10px)';
+        msg.style.transition = 'all 0.5s ease-in';
+        setTimeout(() => msg.remove(), 500);
+    }, duration);
+}
+
+/**
+ * BMIに基づいたアドバイスを表示します
+ */
+function showBmiAdvice() {
+    const { weight, height } = state.profile;
+    const hMeter = height / 100;
+    const bmi = weight / (hMeter * hMeter);
+    
+    let adviceKey = 'ai_bmi_normal';
+    if (bmi < 18.5) adviceKey = 'ai_bmi_under';
+    else if (bmi >= 25) adviceKey = 'ai_bmi_over';
+    
+    setTimeout(() => {
+        showAiMessage(t(adviceKey));
+    }, 1500);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
@@ -60,6 +133,17 @@ function initApp() {
         
         // [Phase 16] 起動時のタブを確実に反映（初回は settings、2回目以降は dashboard）
         switchTab(state.activeTab);
+
+        // [New] 寄り添う挨拶
+        const hour = new Date().getHours();
+        let greetKey = 'ai_greet_morning';
+        if (hour >= 11 && hour < 17) greetKey = 'ai_greet_noon';
+        else if (hour >= 17 && hour < 22) greetKey = 'ai_greet_evening';
+        else if (hour >= 22 || hour < 5) greetKey = 'ai_greet_night';
+        
+        setTimeout(() => {
+            showAiMessage(t(greetKey));
+        }, 800);
 
         // [Phase 24] ピッカーの初期スクロールが完了するまで待ってから初期化フラグを解除
         setTimeout(() => {
@@ -296,18 +380,29 @@ function initProfileSegmentLogic() {
 
     bindSegmentClicks('profile-gender-selector', (v) => {
         const defaults = v === 'male' ? { height: 170, weight: 65 } : { height: 155, weight: 50 };
-        document.getElementById('profile-gender').value = v;
-        document.getElementById('profile-height').value = defaults.height;
-        document.getElementById('profile-weight').value = defaults.weight;
         
+        // 即座に隠しフィールドとstateを更新
+        const genderInput = document.getElementById('profile-gender');
+        if (genderInput) genderInput.value = v;
+        
+        state.profile.gender = v;
+        state.profile.height = defaults.height;
+        state.profile.weight = defaults.weight;
+        
+        // 1. 保存処理
         saveProfile(false);
-        syncAllPickers(); // ピッカーを適切な推奨値へスクロール
+        
+        // 2. スクロール処理 (DOMの更新を待つために10msだけ待機)
+        setTimeout(() => {
+            syncAllPickers(); 
+        }, 10);
     });
     
     bindSegmentClicks('profile-age-selector', (v) => {
         document.getElementById('profile-age').value = v;
+        state.profile.age = parseInt(v);
         saveProfile(false);
-        scrollToValue(document.getElementById('picker-age'), v); // ピッカーをスクロールさせる
+        scrollToValue(document.getElementById('picker-age'), v);
     });
     
     bindSegmentClicks('profile-pal-selector', (v) => {
@@ -333,36 +428,34 @@ function initScrollPicker(containerId, min, max, initialValue, callback) {
     if (!container) return;
     
     container.innerHTML = ''; // クリア
-    const picker = document.createElement('div');
-    picker.className = 'picker-content';
-    picker.style.display = 'flex';
-    picker.style.gap = '15px';
-    
     for (let i = min; i <= max; i++) {
         const item = document.createElement('div');
         item.className = 'picker-item';
         item.textContent = i;
         item.setAttribute('data-val', i);
         item.onclick = () => scrollToValue(container, i);
-        picker.appendChild(item);
+        container.appendChild(item);
     }
-    container.appendChild(picker);
 
     let isScrolling;
     let lastValue = initialValue;
 
     container.addEventListener('scroll', () => {
-        // プログラムによるスクロール（isInternalScroll）中は無視する
         if (container.isInternalScroll) return;
 
         window.clearTimeout(isScrolling);
         isScrolling = setTimeout(() => {
-            const center = container.scrollLeft + (container.offsetWidth / 2);
+            if (container.isInternalScroll) return;
+
+            const rect = container.getBoundingClientRect();
+            const center = rect.left + (rect.width / 2);
             let closest = null;
             let minDiff = Infinity;
             
-            container.querySelectorAll('.picker-item').forEach(item => {
-                const itemCenter = item.offsetLeft + (item.offsetWidth / 2);
+            const items = container.querySelectorAll('.picker-item');
+            items.forEach(item => {
+                const itemRect = item.getBoundingClientRect();
+                const itemCenter = itemRect.left + (itemRect.width / 2);
                 const diff = Math.abs(center - itemCenter);
                 if (diff < minDiff) {
                     minDiff = diff;
@@ -372,15 +465,15 @@ function initScrollPicker(containerId, min, max, initialValue, callback) {
 
             if (closest) {
                 const val = closest.getAttribute('data-val');
-                if (val !== lastValue) {
+                if (val !== lastValue && minDiff < 40) {
                     lastValue = val;
-                    // 他のアイテムの選択クラスをリセット
-                    container.querySelectorAll('.picker-item').forEach(i => i.classList.remove('selected'));
+                    items.forEach(i => i.classList.remove('selected'));
                     closest.classList.add('selected');
                     callback(val);
+                    scrollToValue(container, val, false);
                 }
             }
-        }, 150); // デバウンスを少し長くしてPC対応
+        }, 150);
     });
 
     // 初期位置へ即座に（behavior: 'auto'）移動
@@ -388,42 +481,46 @@ function initScrollPicker(containerId, min, max, initialValue, callback) {
 }
 
 function scrollToValue(container, val, isInitial = false) {
-    if (!container) return; // 存在確認
+    if (!container) return;
     const target = container.querySelector(`.picker-item[data-val="${val}"]`);
     if (target) {
-        container.isInternalScroll = true; // フラグを立ててリスナーを抑制
-        const offset = target.offsetLeft - (container.offsetWidth / 2) + (target.offsetWidth / 2);
+        container.isInternalScroll = true;
         
+        // 厳密な中央寄せ計算: コンテナの中心座標とターゲットの中心座標を一致させる
+        const containerRect = container.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        
+        // 画面上での中心位置の差分を求める
+        const centerDiff = (targetRect.left + targetRect.width / 2) - (containerRect.left + containerRect.width / 2);
+        
+        // 現在のスクロール位置を起点に、差分だけ動かす
         container.scrollTo({ 
-            left: offset, 
+            left: container.scrollLeft + centerDiff, 
             behavior: isInitial ? 'auto' : 'smooth' 
         });
         
-        // 選択表示の即時反映
         container.querySelectorAll('.picker-item').forEach(item => item.classList.remove('selected'));
         target.classList.add('selected');
         
-        // スクロール完了を待ってからフラグを解除
+        const timeout = isInitial ? 300 : 800;
         setTimeout(() => { 
             container.isInternalScroll = false; 
-        }, isInitial ? 200 : 800);
+        }, timeout);
     }
 }
 
 function saveProfile(showAlert = true) {
     if (state.isInitializing) return;
 
+    // 不確実なinput.valueではなく、ピッカーの現在の「選択中(中央)」要素から直接取得する
+    const ageVal = parseInt(document.querySelector('#picker-age .selected')?.getAttribute('data-val') || state.profile.age);
+    const heightVal = parseFloat(document.querySelector('#picker-height .selected')?.getAttribute('data-val') || state.profile.height);
+    const weightVal = parseFloat(document.querySelector('#picker-weight .selected')?.getAttribute('data-val') || state.profile.weight);
     const genderVal = document.getElementById('profile-gender').value;
-    const ageVal = parseInt(document.getElementById('profile-age').value);
-    const heightVal = parseFloat(document.getElementById('profile-height').value);
-    const weightVal = parseFloat(document.getElementById('profile-weight').value);
     const palVal = parseFloat(document.getElementById('profile-pal').value);
 
-    // バリデーション：異常な値（初期値化の失敗など）での上書きを防止
-    if (!ageVal || ageVal < 10 || !heightVal || !weightVal) {
-        console.warn("Master, attempted to save profile with unstable values. Aborting.");
-        return;
-    }
+    // バリデーション
+    if (!ageVal || ageVal < 10 || !heightVal || !weightVal) return;
 
     const profile = {
         gender: genderVal,
@@ -434,11 +531,14 @@ function saveProfile(showAlert = true) {
     };
     setState({ profile });
     
-    // [Phase 31] 保存後はサマリーを更新して閲覧モードに戻る
+    // 保存後はサマリーのみ更新し、表示モードの切り替えは呼び出し元（ボタン等）に任せる
     updateProfileSummary();
-    toggleProfileEdit(false);
     
-    if (showAlert) alert(t('msg_saved_prof'));
+    if (showAlert) {
+        alert(t('msg_saved_prof'));
+        showBmiAdvice(); 
+        toggleProfileEdit(false); // アラートが出る＝確定ボタン押下時のみ閉じる
+    }
 }
 
 function initSettings() {
@@ -665,14 +765,37 @@ function renderDayDetailsByDate(dateKey, label) {
 
 function initCalendarSegmentLogic() {
     const btns = document.querySelectorAll('#cal-scope-selector .segment-btn');
+    const customRange = document.getElementById('cal-custom-range');
+    const startInput = document.getElementById('cal-range-start');
+    const endInput = document.getElementById('cal-range-end');
+
+    // 初期値の設定 (直近1週間)
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - 7);
+    if (startInput) startInput.value = start.toISOString().split('T')[0];
+    if (endInput) endInput.value = end.toISOString().split('T')[0];
+
+    [startInput, endInput].forEach(el => {
+        el?.addEventListener('change', () => {
+            if (state.calendarScope === 'custom' && window.updatePeriodAnalysis) {
+                window.updatePeriodAnalysis();
+            }
+        });
+    });
+
     btns.forEach(btn => {
         btn.onclick = () => {
             btns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             state.calendarScope = btn.getAttribute('data-val');
+            
+            if (customRange) {
+                customRange.style.display = (state.calendarScope === 'custom') ? 'flex' : 'none';
+            }
+
             if (window.updatePeriodAnalysis) window.updatePeriodAnalysis();
             
-            // 週次・月次の時はリストを隠すと使いやすいという要望対応
             const list = document.getElementById('day-meals-list');
             if (list) {
                 list.style.display = (state.calendarScope === 'day') ? 'block' : 'none';
@@ -794,92 +917,8 @@ async function testGeminiConnection() {
     } catch (e) { resDiv.innerHTML = `${currentLang === 'ja' ? '接続失敗' : 'Failed'}: ${e.message}`; }
 }
 async function copyGasScript() {
-    const s = `function doGet(e) {
-  if (e.parameter.type === 'fetch') return handleFetch(e);
-  return ContentService.createTextOutput("Nutri-Vision GAS Service Active");
-}
-
-function doPost(e) {
-  var data = e.postData ? JSON.parse(e.postData.contents) : {};
-  if (data.type === 'log') return handleLog(data);
-  if (data.type === 'activity') return handleActivity(data);
-  if (data.type === 'fetch' || e.parameter.type === 'fetch') return handleFetch(e, data);
-  if (data.type === 'batch') return handleBatch(data, e);
-  return sendResponse({status:'error', message:'Unknown style'}, e);
-}
-
-function handleLog(data) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Log') || ss.insertSheet('Log');
-  if (sheet.getLastRow() === 0) sheet.appendRow(['ID', '日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重', '食物繊維', '野菜', '緑黄色野菜']);
-  sheet.appendRow([data.id, data.date, data.time, data.name, data.calories, data.p, data.f, data.c, data.salt, data.weight || '', data.fiber || 0, data.veg || 0, data.gyVeg || 0]);
-  return sendResponse({ status: 'success' });
-}
-
-function handleActivity(data) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Activities') || ss.insertSheet('Activities');
-  if (sheet.getLastRow() === 0) sheet.appendRow(['ID', '日付', '時間', '種目', '消費カロリー', '時間(分)']);
-  sheet.appendRow([data.id, data.date, data.time, data.typeName, data.calories, data.duration]);
-  return sendResponse({ status: 'success' });
-}
-
-function handleBatch(data, e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  if (data.history && data.history.length > 0) {
-    var sheet = ss.getSheetByName('Log') || ss.insertSheet('Log');
-    if (sheet.getLastRow() === 0) sheet.appendRow(['ID', '日付', '時間', '項目', 'カロリー', 'たんぱく質', '脂質', '炭水化物', '塩分', '体重', '食物繊維', '野菜', '緑黄色野菜']);
-    var rows = data.history.map(function(h) {
-      return [h.id, h.date, h.time, h.name, h.calories, h.p, h.f, h.c, h.salt, h.weight || '', h.fiber || 0, h.veg || 0, h.gyVeg || 0];
-    });
-    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 13).setValues(rows);
-  }
-  
-  if (data.activities && data.activities.length > 0) {
-    var sheet = ss.getSheetByName('Activities') || ss.insertSheet('Activities');
-    if (sheet.getLastRow() === 0) sheet.appendRow(['ID', '日付', '時間', '種目', '消費カロリー', '時間(分)']);
-    var rows = data.activities.map(function(a) {
-      return [a.id, a.date, a.time, a.typeName, a.calories, a.duration];
-    });
-    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 6).setValues(rows);
-  }
-  
-  return sendResponse({ status: 'success' }, e);
-}
-
-function handleFetch(e, data) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var history = [];
-  var logSheet = ss.getSheetByName('Log');
-  if (logSheet && logSheet.getLastRow() > 1) {
-    var hRows = logSheet.getRange(2, 1, logSheet.getLastRow() - 1, 13).getValues();
-    hRows.forEach(function(r) {
-      history.push({ id: r[0], date: r[1], time: r[2], name: r[3], calories: r[4], p: r[5], f: r[6], c: r[7], salt: r[8], weight: r[9], fiber: r[10] || 0, veg: r[11] || 0, gyVeg: r[12] || 0 });
-    });
-  }
-  
-  var activities = [];
-  var actSheet = ss.getSheetByName('Activities');
-  if (actSheet && actSheet.getLastRow() > 1) {
-    var aRows = actSheet.getRange(2, 1, actSheet.getLastRow() - 1, 6).getValues();
-    aRows.forEach(function(r) {
-      activities.push({ id: r[0], date: r[1], time: r[2], typeName: r[3], calories: r[4], duration: r[5], type: 'activity' });
-    });
-  }
-  
-  return sendResponse({ status: 'success', history: history, activities: activities }, e);
-}
-
-function sendResponse(obj, e) {
-  var json = JSON.stringify(obj);
-  if (e && e.parameter && e.parameter.callback) {
-    return ContentService.createTextOutput(e.parameter.callback + "(" + json + ")")
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
-}`;
-    navigator.clipboard.writeText(s).then(() => alert(t('msg_copied_gas')));
+    // 無料版では案内のみを表示
+    showAiMessage(t('msg_gas_pro_only'), 8000);
 }
 function exportToCSV() {
     const isJa = currentLang === 'ja';

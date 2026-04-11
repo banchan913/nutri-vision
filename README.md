@@ -1,141 +1,77 @@
 # Nutri-Vision 🥗📸
+> **Your Kind AI Nutrition Partner / 寄り添うAI栄養パートナー**
 
 [English](#english) | [日本語](#日本語)
-
-![Nutri-Vision Screenshot](https://images.unsplash.com/photo-1498837167922-41cfa6f31ce3?q=80&w=800&auto=format&fit=crop) <!-- Replace with actual screenshot later -->
 
 ---
 
 <h2 id="english">English</h2>
 
-**Nutri-Vision** is a next-generation nutrition tracking web application that uses AI to automatically analyze meals (calories and macronutrients) from a single photo, helping you manage your daily health. It features a highly modern design (dark mode, glassmorphism) and works smoothly on both smartphones and PCs.
+**Nutri-Vision** is a next-generation nutrition tracking web application that acts like your personal nutritionist. Using AI, it automatically analyzes meals from a single photo, helping you manage your daily health with ease and kindness.
 
-### ✨ Features
+### ✨ Key Features
+- 📸 **AI Meal Analysis (Gemini API)**: Snap a photo, and AI does the rest. Add simple notes (e.g., "200g chicken") to help your assistant provide even more accurate advice.
+- 📊 **Unified Data Visualization**: Track your calorie balance, PFC ratios, and weight trends with elegant, integrated charts.
+- 📅 **Flexible Calendar Analysis**: Aggregate totals for weeks, months, or any custom range to see your progress at a glance.
+- 🏃 **Exercise Logging**: Record your activities with a single tap. Your assistant predicts weight changes based on your balance.
+- 📱 **QR Setup Transfer**: Effortlessly move your settings from PC to mobile.
 
-- 📸 **AI Meal Image Analysis (Gemini API)**: Simply upload or snap a photo of your meal, and the AI will automatically estimate the dish name, calories, protein, fat, carbs, and salt equivalent. It also features an OCR mode to analyze nutrition labels on food packaging.
-- 📊 **Rich Data Visualization**: Track your daily calorie balance, macronutrient (PFC) ratio, and weight trends using visually appealing charts powered by Chart.js.
-- 🌍 **Multi-language Support (i18n)**: The UI text and AI output language automatically switch to match your browser or device's language settings (English / Japanese).
-- 🏃 **Exercise Tracking**: Log daily physical activities like walking or muscle training with a single tap. The app predicts future weight fluctuations based on both calorie intake and calories burned.
-- ☁️ **Cloud Sync (Google Apps Script)**: By default, data is saved locally in your browser to protect privacy. By linking with a free Google Spreadsheet (GAS), you can share data across multiple devices and maintain a persistent cloud backup.
-- 📱 **QR Code Transfer Magic**: Instantly transfer your API keys and URL settings from your PC to your smartphone via a generated QR code.
+### 🚀 Get Started (Free Version)
+1. **Open `index.html`** in a modern browser.
+2. **Set your Gemini API Key** (Free from [Google AI Studio](https://aistudio.google.com/app/apikey)).
+3. **Configure your Profile** in the Settings tab, and you're ready to go!
 
-### 🚀 How to Use
+---
 
-This application operates entirely on the front-end without requiring any complex server setup.
+### 💎 Get the Pro Experience (note / Patreon)
+While this GitHub version is fully functional for local use, we offer a **Premium Package** for those who want the best experience and support:
+- 📘 **3-Minute Visual Setup Guide**: Step-by-step PDF/Article with screenshots.
+- ☁️ **Cloud Sync & Data Backup**: The latest GAS code to sync your data across all devices via Google Sheets.
+- 🚀 **Priority Updates & Support**: Access to professional feedback forms and our upcoming feature roadmap.
 
-1. **Download and Open**  
-   Clone or download this repository, and open `index.html` in a modern browser (Chrome, Safari, etc.).
-2. **Get a Gemini API Key**  
-   To use the AI analysis feature, generate a free **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/app/apikey).
-3. **Initial Setup**  
-   Go to the "Settings" tab in the app, and enter your profile information (height, weight, etc.) along with the API key you obtained.
-4. **Start Logging**  
-   Go to the "Log" tab, upload a photo of your food, and start analyzing!
-
-### 🛠️ Tech Stack
-
-- **UI / Front-end**: HTML5, Vanilla JavaScript, Vanilla CSS (Responsive design, Dark mode exclusively)
-- **Icons**: [Phosphor Icons](https://phosphoricons.com/)
-- **Charts**: [Chart.js](https://www.chartjs.org/)
-- **AI Analysis**: [Google Gemini 1.5 Flash](https://aistudio.google.com/app/prompts/new_chat) (REST API Call)
-- **Cloud Sync**: Google Apps Script (GAS) to read/write Google Spreadsheets (using JSONP to bypass CORS)
-
-### 💾 Data Storage & Backup
-
-This application offers two ways to store your data depending on your needs.
-
-#### 📱 Pattern A: Using the app on a single device (Local Storage)
-By default, the app runs in **Local Storage Mode**. No complex setup like GAS is required, and all tracking and AI features function perfectly.
-- **Save Location**: All data and settings are securely saved inside your current browser.
-- **Backup / Export**: If you want to keep a record or migrate to a new device, go to the "Settings" tab and click **"Export to CSV"**. This will download all your daily history as a CSV file to your device's download folder (or Files app on mobile).
-
-#### ☁️ Pattern B: Multi-device sync using Google Sheets (Cloud Mode)
-If you want to sync data seamlessly between your smartphone and PC, you can configure a Google Spreadsheet as your database. Since the Google Apps Script editor does not open on mobile browsers, **we strongly recommend setting this up on a PC first**, then transferring the settings to your smartphone.
-1. On your PC, create a new [Google Spreadsheet](https://sheets.new) and open "Extensions" > "Apps Script".
-2. In the Nutri-Vision app, go to the "Settings" tab, click the "Copy GAS Script" button, and paste the code into the Apps Script editor, overwriting any default code.
-3. In the Apps Script editor, click "Deploy" > "New deployment" in the top right.
-4. Select "Web app", set **Who has access to "Anyone"**, and click Deploy.
-5. Copy the displayed "Web app URL" and paste it into the Cloud Sync section of the app's settings on your PC.
-6. Click **"Show QR Code"** in the app to display a QR code containing these settings, and scan it with your smartphone's camera to effortlessly transfer the configuration.
-
-### 🔒 Privacy
-
-This application runs purely on the front-end. By default, all your dietary data and API keys remain safely stored within your own device (browser LocalStorage). No data is sent to any servers managed by us (excluding API calls directly to Google Gemini and your personal GAS endpoint, if configured).
+[**👉 Support the Project & Get the Pro Guide (note)**](https://note.com/YOUR_PAGE) | [**👉 Join our Community (Patreon)**](https://www.patreon.com/YOUR_PAGE)
 
 ---
 
 <h2 id="日本語">日本語</h2>
 
-**Nutri-Vision** は、写真1枚からAIが食事のカロリーと栄養素を自動解析し、日々の健康管理をサポートする次世代の栄養トラッキング・ウェブアプリケーションです。非常にモダンなデザイン（ダークモード、グラスモーフィズム）を採用し、スマホとPCの両方で快適に動作します。
+**Nutri-Vision** は、写真1枚からAIがあなたの専属管理栄養士のように栄養素を分析し、日々の健康を優しくサポートする次世代の栄養トラッキング・アプリです。
 
 ### ✨ 主な特徴
+- 📸 **AI食事画像解析 (Gemini API)**: 写真を撮るだけで栄養計算は完了。スタッフに教えるように「材料や重さ」を少し足すだけで、さらに精度の高いアドバイスをお届けします。
+- 📊 **統合グラフ表示**: カロリー収支、PFCバランス、体重推移を、美しく洗練されたグラフで見渡せます。
+- 📅 **自由な期間分析**: 1週間、1ヶ月、あるいは好きな期間を指定して合計値を集計。目標に向けた進捗をしっかり見守ります。
+- 🏃 **かんたん運動記録**: 各種アクティビティを1タップで追加。摂取と消費のバランスから未来の体重変動を予測します。
+- 📱 **QRコード設定引継ぎ**: PCで行った設定を一瞬でスマホのカメラから同期できます。
 
-- 📸 **AI 食事画像解析 (Gemini API)**: スマホで撮った写真やダウンロードした画像をアップロードするだけで、料理名、カロリー、たんぱく質、脂質、炭水化物、食塩相当量をAIが自動で推測します。パッケージの「栄養成分表示」をOCR解析するモードも備えています。
-- 📊 **リッチなデータビジュアライゼーション**: Chart.jsを用いた視覚的にわかりやすいグラフで、毎日のカロリー収支、三大栄養素（PFC）のバランス、そして体重の推移をトラッキングします。
-- 🌍 **多言語対応 (i18n)**: お使いのブラウザやデバイスの言語設定（日本語 / 英語）に合わせてUIテキストとAIの出力言語が自動的に切り替わります。
-- 🏃 **運動の記録**: ウォーキングや筋力トレーニングなど、日常の運動消費カロリーも1タップで記録。摂取カロリーと消費カロリーの両軸から未来の体重変動を予測します。
-- ☁️ **クラウド同期 (Google Apps Script)**: 標準はブラウザ内のローカルストレージにデータを保存しますが、無料で使えるGoogleスプレッドシート（GAS）と連携することで、複数端末間でのデータ共有やクラウドへの永続バックアップが可能です。
-- 📱 **QRコード転送魔法**: PCで設定した面倒なAPIキーやURLなどを、QRコードを通してスマホへ一瞬で引き継ぐ機能を搭載しています。
-
-### 🚀 使い方
-
-本アプリはサーバー構築不要（フロントエンド完結型）で動作します。
-
-1. **ダウンロードして開く**  
-   このリポジトリをクローンするかダウンロードし、`index.html` をモダンブラウザ（Chrome, Safari等）で開いてください。
-2. **Gemini APIキーの取得**  
-   AI解析機能を利用するために、[Google AI Studio](https://aistudio.google.com/app/apikey) にて無料で取得できる **Gemini APIキー** を生成します。
-3. **初期設定**  
-   アプリの「設定」タブを開き、身長・体重などのプロフィール情報と、取得したAPIキーを入力します。
-4. **記録開始**  
-   「記録する」タブから写真をアップロードし、分析を開始してください！
-
-### 🛠️ 技術スタック
-
-- **UI / フロントエンド**: HTML5, Vanilla JavaScript, Vanilla CSS (レスポンシブデザイン, ダークモード専用)
-- **アイコン**: [Phosphor Icons](https://phosphoricons.com/)
-- **グラフ描画**: [Chart.js](https://www.chartjs.org/)
-- **AI 解析**: [Google Gemini 1.5 Flash](https://aistudio.google.com/app/prompts/new_chat) (REST API呼び出し)
-- **クラウド同期 (BaaS代用)**: Google Apps Script (GAS) 経由での Google Spreadsheet 読み書き（JSONPによるCORS回避実装）
-
-### 💾 データの保存とバックアップについて
-
-利用目的や環境に合わせて、2つの保存方法で利用できます。
-
-#### 📱 パターンA: スマホ単体（またはPC単体）で使う場合
-標準の**「端末保存モード」**です。GAS等の複雑な設定は一切不要で、AI解析やグラフ表示など全機能がそのままお使いいただけます。
-- **保存場所**: 入力されたデータはすべてお使いのブラウザ自体（LocalStorage）の中だけに保存されます。
-- **バックアップ**: アプリの「設定」画面の一番下にある「CSV形式で全履歴を出力」を押すと、エクセル等で開けるCSVファイルとしてデータをダウンロードできます（スマホの場合は「ファイル」アプリやダウンロードフォルダに保存されます）。機種変更時の記録用などに利用してください。
-
-#### ☁️ パターンB: PCとスマホ間などでクラウド同期したい場合
-スプレッドシートをデータベースとして活用し、データを永続化するモードです。 Google Apps Script の画面はスマホアプリからは操作できないため、**PCのブラウザで設定することを強く推奨**します。
-1. PCで [Google スプレッドシート](https://sheets.new) を新規作成し、「拡張機能」>「Apps Script」を開きます。
-2. アプリの「設定」画面中段にある「GASスクリプトをコピー」ボタンを押し、コードをApps Scriptエディタに貼り付けて保存します。
-3. Apps Scriptの右上にある「デプロイ」>「新しいデプロイ」を選択します。
-4. 種類を「ウェブアプリ」とし、**アクセスできるユーザーを「全員 (Anyone)」** に設定して「デプロイ」を実行します。
-5. 表示された「ウェブアプリの URL」を、PC版アプリの設定画面に入力してください。
-6. 設定後、画面下部の**「スマホ用QRコードを表示」**を押し、スマホのカメラで読み取るだけで、URLの手打ちなどの手間なくスマホ側へ環境を引き継ぐことができます。
-
-### 🔒 プライバシーについて
-
-本アプリはフロントエンドのみで動作し、標準状態ではあなたの食事データやAPIキーはすべて「お使いの端末（ブラウザのLocalStorage）」内に留まります。我々の管理するサーバーにデータが送信されることはありません（Google APIへの通信や、ご自身で設定したGASへの通信を除きます）。
+### 🚀 はじめかた（無料版）
+1. **`index.html` を開く**: モダンブラウザ（Chrome, Safari等）で起動します。
+2. **APIキーをセット**: [Google AI Studio](https://aistudio.google.com/app/apikey) で取得できる無料のGemini APIキーを設定してください。
+3. **プロフィールを入力**: 設定タブからあなたのことを教えてください。すぐに解析が始まります。
 
 ---
 
-*Made with ❤️ and Vanilla JS.*
+### 💎 プレミアム・パッケージのご案内 (note版)
+GitHub版でもローカルでの全機能が利用可能ですが、さらに快適に使いこなしたい方向けに**「Pro/プレミアム版サポート」**を提供しています。
+
+- 📘 **3分で完了！図解設定マニュアル**: 初心者の方でも迷わない、全手順のスクリーンショット付き解説（PDF/記事）。
+- ☁️ **クラウド同期 & 複数端末連携**: PCとスマホでデータを共有するための「専用GASスクリプト」と、その設置ガイド。
+- 🚀 **最新アップデート & 不備報告フォーム**: 購入者限定のアップデート情報や、個別の不備報告を受け付ける専用フォームへのアクセス。
+
+[**👉 noteでマニュアルと同期機能を入手する**](https://note.com/YOUR_PAGE) | [**👉 Patreonでプロジェクトを支援する**](https://www.patreon.com/YOUR_PAGE)
 
 ---
 
-### 🗓️ Future Roadmap / 今後の展望
+### 💾 データの管理について
+- **端末保存モード（標準）**: データはお使いのブラウザ内（LocalStorage）にのみ安全に保存されます。
+- **クラウド同期（Pro版）**: スプレッドシートをデータベースとして活用し、データの永続化と複数端末間での同期が可能です。
 
-**Multi-language Support (i18n) Expansion**
-To reach more users globally, we plan to expand language support to:
-- 🇨🇳 Chinese (Simplified & Traditional / 簡体字・繁体字)
-- 🇪🇸 Spanish (スペイン語)
-- 🇫🇷 French (フランス語)
-- 🇧🇷 Portuguese (ポルトガル語)
+### 🔒 プライバシー
+本アプリはフロントエンド完結型です。あなたのAPIキーや食事データは、あなたが選択した保存場所以外（弊社サーバー等）に送信されることはありません。
 
-**Upcoming Features**
-- [ ] **PWA Support**: Offline capability and "Add to Home Screen" support.
-- [ ] **AI Health Coach**: Personalized advice based on weekly nutrition trends.
-- [ ] **Enhanced Data Sync**: More robust conflict resolution for multi-device sync.
+### 🗓️ 今後の展望
+- **PWA対応**: ホーム画面への追加とオフライン利用。
+- **AIヘルスコーチ**: 週次のトレンドに基づいた、より親身でパーソナルな健康アドバイス機能。
+- **多言語の拡充**: 中・西・仏・西語への対応拡大。
+
+*Made with ❤️ by Nutri-Vision Team.*
