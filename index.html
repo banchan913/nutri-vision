@@ -63,9 +63,12 @@
                         <div class="segment-btn" data-scope="month" data-i18n="cal_scope_month">月次集計</div>
                     </div>
                 </div>
-                <div id="calendar-view-container">
-                    <!-- カレンダー本体または集計サマリー -->
+                <div id="calendar-view-container" class="calendar-container">
+                    <!-- JSでカレンダーグリッドと日別サマリーを生成 -->
+                    <div id="calendar-grid" class="calendar-grid"></div>
+                    <div id="selected-day-details" class="day-details card hidden"></div>
                 </div>
+
             </section>
 
             <!-- 3. Record Tab -->
@@ -122,8 +125,49 @@
                     <button class="btn btn-secondary" onclick="toggleProfileEdit(true)" data-i18n="set_btn_edit">プロフィールを変更する</button>
                 </div>
 
-                <div class="settings-group">
-                    <h2 data-i18n="set_title_api">API設定</h2>
+                    <!-- 編集エリア (IDs for app.js) -->
+                    <div id="profile-edit-area" style="display: none; flex-direction: column; gap: 20px; background: rgba(255,255,255,0.02); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="input-field">
+                            <label data-i18n="set_gender">性別</label>
+                            <div id="profile-gender-selector" class="segment-selector">
+                                <div class="segment-btn active" data-val="male" data-i18n="set_male">男性</div>
+                                <div class="segment-btn" data-val="female" data-i18n="set_female">女性</div>
+                            </div>
+                            <input type="hidden" id="profile-gender" value="male">
+                        </div>
+                        <div class="profile-input-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="input-field">
+                                <label data-i18n="set_age">年齢</label>
+                                <input type="number" id="profile-age" placeholder="歳">
+                            </div>
+                            <div class="input-field">
+                                <label data-i18n="set_height">身長 (cm)</label>
+                                <input type="number" id="profile-height" placeholder="cm">
+                            </div>
+                        </div>
+                        <div class="input-field">
+                            <label data-i18n="set_weight">体重 (kg)</label>
+                            <input type="number" id="profile-weight" placeholder="kg">
+                        </div>
+                        <div class="input-field">
+                            <label data-i18n="set_pal_title">身体活動レベル</label>
+                            <div id="profile-pal-selector" class="segment-selector">
+                                <div class="segment-btn active" data-val="1.5">低い</div>
+                                <div class="segment-btn" data-val="1.75">ふつう</div>
+                                <div class="segment-btn" data-val="2.0">高い</div>
+                            </div>
+                            <input type="hidden" id="profile-pal" value="1.75">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="saveProfile()" style="flex: 2;"><span data-i18n="btn_save">保存して計算</span></button>
+                            <button class="btn btn-secondary" onclick="toggleProfileEdit(false)" style="flex: 1;"><span data-i18n="btn_cancel">戻る</span></button>
+                        </div>
+                    </div>
+
+                    <div class="settings-group" style="margin-top: 30px;">
+                        <h2 data-i18n="set_title_api">API設定</h2>
+                        <!-- ... (API guide logic remains) ... -->
+
                     <div class="api-guide" id="api-guide-box" style="background: rgba(59, 130, 246, 0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; line-height: 1.6;">
                         <p style="font-weight: 700; margin-bottom: 8px; color: var(--accent-primary);">💡 APIキーの取得方法（とっても簡単です！）</p>
                         <ol style="padding-left: 18px; color: var(--text-secondary);">
