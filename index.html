@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nutri-Vision 2.0 | AI精密栄養管理</title>
+    <title>Nutri-Vision | AI精密栄養管理</title>
     <link rel="icon" type="image/png" href="src/img/icon.png">
     <link rel="stylesheet" href="src/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,12 +11,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- 全ての機能の基盤となる翻訳と辞書 -->
     <script src="src/js/i18n.js"></script>
 </head>
 <body class="dark-theme">
     <div id="app">
-        <!-- サイドナビゲーション -->
+        <!-- サイドナビ -->
         <nav class="side-nav">
             <div class="logo">
                 <img src="src/img/icon.png" alt="Logo" style="width: 28px; height: 28px; border-radius: 6px;">
@@ -24,8 +23,8 @@
             </div>
             <ul class="nav-links">
                 <li class="active" data-tab="dashboard"><i class="ph ph-squares-four"></i><span data-i18n="nav_dashboard">ホーム</span></li>
-                <li data-tab="calendar"><i class="ph ph-calendar-blank"></i><span data-i18n="nav_calendar">分析</span></li>
-                <li data-tab="meal-log"><i class="ph ph-camera"></i><span data-i18n="nav_record">記録</span></li>
+                <li data-tab="calendar"><i class="ph ph-calendar-blank"></i><span data-i18n="nav_calendar">カレンダー</span></li>
+                <li data-tab="meal-log"><i class="ph ph-camera"></i><span data-i18n="nav_record">記録する</span></li>
                 <li data-tab="analysis"><i class="ph ph-chart-line-up"></i><span data-i18n="nav_analysis">トレンド</span></li>
                 <li data-tab="history"><i class="ph ph-clock-counter-clockwise"></i><span data-i18n="nav_history">全履歴</span></li>
                 <li data-tab="settings"><i class="ph ph-gear"></i><span data-i18n="nav_settings">設定</span></li>
@@ -36,51 +35,123 @@
             <header class="main-header">
                 <h1 id="page-title" data-i18n="nav_dashboard">ホーム</h1>
                 <div class="header-actions">
-                    <button class="btn btn-secondary" id="sync-btn"><i class="ph ph-arrows-clockwise"></i><span data-i18n="btn_sync">同期</span></button>
-                    <button class="btn btn-primary" onclick="switchTab('meal-log')"><i class="ph ph-plus-circle"></i><span data-i18n="btn_record">記録開始</span></button>
+                    <button class="btn btn-secondary" id="sync-btn" onclick="syncDataManual()"><i class="ph ph-arrows-clockwise"></i><span data-i18n="btn_sync">同期</span></button>
+                    <button class="btn btn-primary" onclick="switchTab('meal-log')"><i class="ph ph-plus-circle"></i><span data-i18n="btn_record">記録</span></button>
                 </div>
             </header>
 
             <div id="tab-container">
-                <!-- Dashboard Tab -->
+                <!-- 1. Dashboard Tab -->
                 <section id="dashboard-tab" class="tab-pane active">
-                    <div class="charts-grid" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                    <div class="charts-container">
                         <div class="chart-box">
-                            <h3 data-i18n="dash_fulfillment_today" style="margin-bottom: 20px;">栄養バランス</h3>
+                            <h3 data-i18n="dash_fulfillment_today">今日の目標達成状況</h3>
                             <div style="height: 400px;"><canvas id="dashboardNutrientChart"></canvas></div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Calendar Tab (期間ボタン連動) -->
+                <!-- 2. Calendar Tab -->
                 <section id="calendar-tab" class="tab-pane">
                     <div class="segment-selector" id="cal-scope-selector" style="margin-bottom: 20px;">
                         <div class="segment-btn active" data-val="day" data-i18n="cal_scope_day">1日ごと</div>
-                        <div class="segment-btn" data-val="week" data-i18n="cal_scope_week">今日から7日間</div>
-                        <div class="segment-btn" data-val="month" data-i18n="cal_scope_month">今日から30日間</div>
+                        <div class="segment-btn" data-val="week" data-i18n="cal_scope_week">1週間（合計）</div>
+                        <div class="segment-btn" data-val="month" data-i18n="cal_scope_month">1ヶ月（合計）</div>
                     </div>
-                    <div id="calendar-analysis-container">
-                        <!-- ここにチャートが出現 -->
+                    <div id="cal-summary-stats" class="summary-card hidden"></div>
+                    <div id="cal-charts-container" class="charts-container" style="display: none; flex-direction: column; gap: 20px;">
+                        <div class="chart-box"><canvas id="calPfcChart"></canvas></div>
+                        <div class="chart-box"><canvas id="calNutrientChart"></canvas></div>
                     </div>
                 </section>
 
-                <!-- Recording Tab (AI写真解析との紐付け) -->
+                <!-- 3. Meal Log Tab -->
                 <section id="meal-log-tab" class="tab-pane">
-                    <div class="recording-card" style="text-align: center; padding: 40px;">
+                    <div class="recording-card">
                         <input type="file" id="file-input" accept="image/*" hidden>
-                        <button class="camera-trigger" onclick="document.getElementById('file-input').click()" style="width: 150px; height: 150px; border-radius: 50%; background: var(--accent-primary); color: white; border: none; font-size: 48px; box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);">
-                            <i class="ph ph-camera"></i>
-                        </button>
-                        <p style="margin-top: 20px; font-weight: 600;">写真を撮ってAI解析を開始</p>
+                        <button class="camera-trigger" onclick="document.getElementById('file-input').click()"><i class="ph ph-camera"></i></button>
+                        <div id="image-preview-container" class="hidden">
+                            <img id="image-preview" src="" alt="Preview" style="width:100%; border-radius:12px;">
+                        </div>
                     </div>
                 </section>
-                
-                <!-- Settings Tab -->
+
+                <!-- 4. Settings & Profile Tab -->
                 <section id="settings-tab" class="tab-pane">
+                    <!-- パーソナルプロフィールサマリー -->
                     <div class="settings-group">
                         <h3 data-i18n="set_prof_title">パーソナルプロフィール</h3>
                         <div id="profile-summary-area" class="profile-summary-card">
-                            <!-- JSで流し込む -->
+                            <!-- JSで流し込む部分 -->
+                        </div>
+                        
+                        <!-- 編集エリア (初期は隠す) -->
+                        <div id="profile-edit-area" style="display: none; flex-direction: column; gap: 20px;">
+                            <div class="setting-item">
+                                <label data-i18n="set_gender">性別</label>
+                                <div id="profile-gender-selector" class="profile-options">
+                                    <div class="segment-btn" data-val="male" data-i18n="set_male">男性</div>
+                                    <div class="segment-btn" data-val="female" data-i18n="set_female">女性</div>
+                                </div>
+                                <input type="hidden" id="profile-gender">
+                            </div>
+                            <div class="setting-item">
+                                <label data-i18n="set_age">年齢</label>
+                                <div id="picker-age" class="scroll-picker-container"></div>
+                                <input type="number" id="profile-age" hidden>
+                            </div>
+                            <div class="profile-row-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="setting-item">
+                                    <label data-i18n="set_height">身長 (cm)</label>
+                                    <div id="picker-height" class="scroll-picker-container"></div>
+                                    <input type="number" id="profile-height" hidden>
+                                </div>
+                                <div class="setting-item">
+                                    <label data-i18n="set_weight">体重 (kg)</label>
+                                    <div id="picker-weight" class="scroll-picker-container"></div>
+                                    <input type="number" id="profile-weight" hidden>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label data-i18n="set_pal_title">活動レベル</label>
+                                <div id="profile-pal-selector" class="profile-options">
+                                    <div class="segment-btn" data-val="1.5" data-i18n="set_pal_low">低い</div>
+                                    <div class="segment-btn" data-val="1.75" data-i18n="set_pal_mid">ふつう</div>
+                                    <div class="segment-btn" data-val="2.0" data-i18n="set_pal_hi">高い</div>
+                                </div>
+                                <input type="hidden" id="profile-pal">
+                            </div>
+                            <button class="btn btn-primary" onclick="saveProfile()"><span data-i18n="btn_save">保存して計算</span></button>
+                        </div>
+                    </div>
+
+                    <!-- システム設定 (API/GAS) -->
+                    <div class="settings-group" style="margin-top: 30px;">
+                        <h3 data-i18n="nav_settings">システム設定</h3>
+                        <div class="setting-item">
+                            <label>Gemini API Key</label>
+                            <input type="password" id="gemini-key" placeholder="AI解析に必要です">
+                        </div>
+                        <div class="setting-item">
+                            <label>Google Apps Script (GAS) URL</label>
+                            <input type="text" id="gas-url" placeholder="データ同期用URL">
+                        </div>
+                        <div class="setting-item">
+                            <label>Gemini Model</label>
+                            <select id="detected-model">
+                                <option value="gemini-1.5-flash">Gemini 1.5 Flash (推奨・高速)</option>
+                                <option value="gemini-1.5-pro">Gemini 1.5 Pro (高精度)</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-secondary" style="width:100%;" onclick="saveSystemSettings()"><span data-i18n="btn_save">設定を保存する</span></button>
+                    </div>
+
+                    <!-- 便利な引き継ぎガイド -->
+                    <div id="onboarding-guide" class="onboarding-banner" style="margin-top: 30px;">
+                        <div class="banner-body">
+                            <h4 data-i18n="set_guide_title">スマートフォンへの引き継ぎ</h4>
+                            <div id="qrcode-area" style="background:#fff; width:120px; height:120px; margin: 10px 0; border-radius: 8px;"></div>
+                            <p style="font-size:11px; opacity:0.7;">PCの設定情報をスマホへ簡単に引き継げます。</p>
                         </div>
                     </div>
                 </section>
@@ -88,10 +159,8 @@
         </main>
     </div>
 
-    <!-- AI寄り添うメッセージコンテナ -->
     <div id="ai-message-container"></div>
 
-    <!-- 安定した順序でのスクリプト読み込み -->
     <script src="src/js/sheets.js"></script>
     <script src="src/js/gemini.js"></script>
     <script src="src/js/charts.js"></script>
