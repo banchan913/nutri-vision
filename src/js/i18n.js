@@ -1,6 +1,6 @@
 var currentLang = navigator.language.startsWith('ja') ? 'ja' : 'en';
 
-const translations = {
+var translations = {
     ja: {
         // Navigation & General
         "nav_dashboard": "ホーム",
