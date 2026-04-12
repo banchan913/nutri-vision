@@ -12,9 +12,13 @@ const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1/models/gem
  */
 async function analyzeMeal(base64Image, note = "") {
     const apiKey = state.settings.geminiApiKey;
+    const modelId = state.settings.model || "gemini-1.5-flash";
+
     if (!apiKey) {
         throw new Error("APIキーが設定されていません。設定画面で入力してください。");
     }
+
+    const dynamicEndpoint = `https://generativelanguage.googleapis.com/v1/models/${modelId}:generateContent`;
 
     // data:image/png;base64,XXXX -> XXXX のみに変換
     const content = base64Image.split(',')[1];
@@ -54,7 +58,7 @@ async function analyzeMeal(base64Image, note = "") {
     };
 
     try {
-        const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+        const response = await fetch(`${dynamicEndpoint}?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestBody)

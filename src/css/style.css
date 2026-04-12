@@ -336,16 +336,44 @@ body {
 }
 
 .model-item {
-    padding: 6px 10px;
+    padding: 10px 14px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+}
+
+.model-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.model-item.active {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.model-badges {
+    display: flex;
+    gap: 6px;
 }
 
 .badge-recommended {
     background: var(--accent-success);
     color: white;
     font-size: 10px;
-    padding: 2px 6px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.badge-active {
+    background: var(--accent-primary);
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px;
     border-radius: 4px;
     font-weight: 700;
 }

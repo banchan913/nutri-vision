@@ -162,14 +162,19 @@ function initApiTest() {
             const models = await testApiKeyConnection(apiKey);
             showAiMessage("接続に成功しました！✨");
 
-            let html = '<div style="margin-bottom:8px; font-weight:700;">利用可能なモデル:</div>';
+            let html = '<div style="margin-bottom:12px; font-weight:700;">利用可能なモデル (タップして選択):</div>';
             models.forEach(m => {
                 const name = m.name.replace('models/', '');
-                const isRec = name === 'gemini-1.5-flash';
+                const isFlash = name.includes('flash') || name.includes('lite');
+                const isCurrent = name === (state.settings.model || "gemini-1.5-flash");
+                
                 html += `
-                    <div class="model-item">
-                        <span>${name}</span>
-                        ${isRec ? '<span class="badge-recommended">推奨</span>' : ''}
+                    <div class="model-item ${isCurrent ? 'active' : ''}" onclick="selectModel('${name}')">
+                        <span style="font-family: monospace;">${name}</span>
+                        <div class="model-badges">
+                            ${isFlash ? '<span class="badge-recommended">推奨</span>' : ''}
+                            ${isCurrent ? '<span class="badge-active">使用中</span>' : ''}
+                        </div>
                     </div>
                 `;
             });
@@ -184,6 +189,31 @@ function initApiTest() {
             testBtn.innerHTML = originalHTML;
         }
     };
+}
+
+/**
+ * モデルを選択して保存する
+ */
+function selectModel(modelName) {
+    state.settings.model = modelName;
+    localStorage.setItem('nutri_settings', JSON.stringify(state.settings));
+    
+    // UI更新
+    document.querySelectorAll('.model-item').forEach(el => {
+        const name = el.querySelector('span').textContent;
+        el.classList.toggle('active', name === modelName);
+        
+        // バッジ更新
+        const badges = el.querySelector('.model-badges');
+        const hasActiveBadge = badges.querySelector('.badge-active');
+        if (name === modelName) {
+            if (!hasActiveBadge) badges.insertAdjacentHTML('beforeend', '<span class="badge-active">使用中</span>');
+        } else {
+            if (hasActiveBadge) hasActiveBadge.remove();
+        }
+    });
+
+    showAiMessage(`使用モデルを ${modelName} に変更しました！`);
 }
 
 /**
