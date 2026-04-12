@@ -66,7 +66,13 @@ async function analyzeMeal(base64Image, note = "") {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error?.message || "APIリクエストに失敗しました");
+            const message = error.error?.message || "";
+            
+            if (response.status === 429) {
+                throw new Error("QUOTA_EXHAUSTED: AIの利用制限（無料枠）に達しました。24時間待つか、設定画面から別のモデル（1.5-flashなど）に切り替えてお試しください。");
+            }
+            
+            throw new Error(message || "APIリクエストに失敗しました");
         }
 
         const result = await response.json();

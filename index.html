@@ -63,13 +63,22 @@
                         <div class="segment-btn" data-scope="month" data-i18n="cal_scope_month">月次集計</div>
                     </div>
                 </div>
-                <div id="calendar-view-container" class="calendar-container">
-                    <div class="calendar-header-grid">
-                        <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+                    <div id="calendar-header" class="calendar-nav">
+                        <button onclick="changeMonth(-1)"><i class="ph ph-caret-left"></i></button>
+                        <h2 id="current-month-display">2026年 4月</h2>
+                        <button onclick="changeMonth(1)"><i class="ph ph-caret-right"></i></button>
                     </div>
-                    <div id="calendar-grid" class="calendar-grid"></div>
-                    <div id="selected-day-details" class="day-details card hidden"></div>
-                </div>
+
+                    <div id="calendar-view-container" class="calendar-container">
+                        <div class="calendar-header-grid">
+                            <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+                        </div>
+                        <div id="calendar-grid" class="calendar-grid"></div>
+                        <div id="selected-day-details" class="day-details card hidden"></div>
+                    </div>
+
+                    <!-- 集計レポートエリア (週次・月次) -->
+                    <div id="aggregation-report" class="aggregation-report hidden"></div>
 
             </section>
 
@@ -225,6 +234,74 @@
     <!-- モーダル・トースト基盤 -->
     <div id="ai-message-container"></div>
     <div id="modal-container" class="modal-overlay hidden"></div>
+
+    <!-- 解析中表示オーバーレイ -->
+    <div id="analysis-loading" class="analysis-overlay hidden">
+        <div class="loader-content">
+            <div class="spinner-rich"></div>
+            <p id="analysis-step-text">AIが栄養素を推定中...</p>
+            <div class="progress-bar-container">
+                <div id="analysis-progress" class="progress-bar-fill"></div>
+            </div>
+            <p class="analysis-eta">あと約10秒で完了します</p>
+        </div>
+    </div>
+
+    <!-- 解析結果確認モーダル -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 data-i18n="conf_title">解析結果の確認・編集</h2>
+            <div class="confirm-form">
+                <div class="input-field">
+                    <label>料理名</label>
+                    <input type="text" id="conf-name">
+                </div>
+                <div class="input-field-grid">
+                    <div class="input-field">
+                        <label>カロリー (kcal)</label>
+                        <input type="number" id="conf-calories">
+                    </div>
+                    <div class="input-field">
+                        <label>塩分 (g)</label>
+                        <input type="number" step="0.1" id="conf-salt">
+                    </div>
+                </div>
+                <!-- PFCなど詳細 -->
+                <div class="nutrient-edit-grid">
+                    <div class="mini-input">
+                        <label>たんぱく質</label>
+                        <input type="number" id="conf-p">
+                    </div>
+                    <div class="mini-input">
+                        <label>脂質</label>
+                        <input type="number" id="conf-f">
+                    </div>
+                    <div class="mini-input">
+                        <label>炭水化物</label>
+                        <input type="number" id="conf-c">
+                    </div>
+                </div>
+
+                <div class="input-field">
+                    <label>記録日</label>
+                    <input type="date" id="conf-date">
+                </div>
+
+                <div class="input-field">
+                    <label>食事区分 / カテゴリ</label>
+                    <div class="category-selector" id="conf-category">
+                        <div class="cat-btn active" data-val="自炊">自炊</div>
+                        <div class="cat-btn" data-val="外食">外食</div>
+                        <div class="cat-btn" data-val="コンビニ">コンビニ</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="confirmSaveMeal()" style="flex:2;">保存する</button>
+                <button class="btn btn-secondary" onclick="closeConfirmModal()" style="flex:1;">キャンセル</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ロジック読み込み -->
     <script src="src/js/logic.js"></script>

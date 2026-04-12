@@ -24,11 +24,14 @@ async function initApp() {
     initActivityButtons();
     initTimePresets();
     initTypeSelector();
+    initScopeSelector(); // 追加
     initPickers();
     initProfileSelectors();
     initApiTest();
     initProfileFields();
+    initSettingsFields(); // 追加
     initProfileSummary();
+    initConfirmationModal(); // 追加
 
     if (!state.profile) {
         switchTab('settings');
@@ -96,6 +99,16 @@ function initPickers() {
 
         const defaultIdx = Math.floor((p.max - p.min) / 2);
         setTimeout(() => el.scrollTo({ top: defaultIdx * 40, behavior: 'instant' }), 100);
+
+        // PC向け：クリックで選択可能にする
+        el.onclick = (e) => {
+            const item = e.target.closest('.picker-item[data-val]');
+            if (item) {
+                const items = Array.from(el.querySelectorAll('.picker-item[data-val]'));
+                const idx = items.indexOf(item);
+                el.scrollTo({ top: idx * 40, behavior: 'smooth' });
+            }
+        };
     });
 }
 
@@ -281,36 +294,110 @@ function initRecordingFunctions() {
             return;
         }
 
+        const loader = document.getElementById('analysis-loading');
+        const progress = document.getElementById('analysis-progress');
+        const stepText = document.getElementById('analysis-step-text');
+        
+        loader.classList.remove('hidden');
         analyzeBtn.disabled = true;
-        const originalText = analyzeBtn.innerHTML;
-        analyzeBtn.innerHTML = `<i class="ph ph-circle-notch animate-spin"></i> ${t('ana_analyzing')}`;
+
+        // フェイク進捗のアニメーション
+        let p = 0;
+        const pInterval = setInterval(() => {
+            p += (100 - p) * 0.1;
+            progress.style.width = `${p}%`;
+            if (p > 30) stepText.textContent = "画像から料理を特定中...";
+            if (p > 70) stepText.textContent = "栄養成分を精密に計算中...";
+        }, 500);
 
         try {
             const result = await analyzeMeal(state.currentMealImage, note);
-            const entry = {
-                ...result,
-                id: Date.now(),
-                date: new Date().toISOString(),
-                image: state.currentMealImage
-            };
-            state.history.push(entry);
-            localStorage.setItem('nutri_history', JSON.stringify(state.history));
+            clearInterval(pInterval);
+            progress.style.width = '100%';
+            
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                showConfirmModal(result);
+            }, 500);
 
-            showAiMessage(t('ana_success'));
-            // フォームリセット
-            state.currentMealImage = null;
-            previewContainer.classList.add('hidden');
-            document.querySelector('.upload-placeholder').classList.remove('hidden');
-            document.getElementById('meal-note').value = '';
-
-            switchTab('dashboard');
         } catch (err) {
-            showAiMessage(err.message || t('ana_error'));
+            clearInterval(pInterval);
+            loader.classList.add('hidden');
+            if (err.message && err.message.includes("QUOTA_EXHAUSTED")) {
+                showAiMessage(`<strong>【利用限度超過】</strong><br>${err.message}<br><br>※設定画面から <strong>gemini-1.5-flash</strong> に戻すと解決する場合があります。`);
+            } else {
+                showAiMessage(err.message || t('ana_error'));
+            }
         } finally {
             analyzeBtn.disabled = false;
-            analyzeBtn.innerHTML = originalText;
         }
     };
+}
+
+let pendingAnalysisResult = null;
+
+function showConfirmModal(result) {
+    pendingAnalysisResult = result;
+    const modal = document.getElementById('confirm-modal');
+    
+    document.getElementById('conf-name').value = result.name;
+    document.getElementById('conf-calories').value = result.calories;
+    document.getElementById('conf-salt').value = result.salt;
+    document.getElementById('conf-p').value = result.p;
+    document.getElementById('conf-f').value = result.f;
+    document.getElementById('conf-c').value = result.c;
+    document.getElementById('conf-date').value = new Date().toISOString().split('T')[0];
+    
+    modal.classList.remove('hidden');
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    pendingAnalysisResult = null;
+}
+
+function initConfirmationModal() {
+    const btns = document.querySelectorAll('.cat-btn');
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        };
+    });
+}
+
+function confirmSaveMeal() {
+    const category = document.querySelector('.cat-btn.active').dataset.val;
+    const name = document.getElementById('conf-name').value;
+    const date = document.getElementById('conf-date').value;
+    
+    const entry = {
+        ...pendingAnalysisResult,
+        name: name,
+        calories: parseInt(document.getElementById('conf-calories').value),
+        salt: parseFloat(document.getElementById('conf-salt').value),
+        p: parseInt(document.getElementById('conf-p').value),
+        f: parseInt(document.getElementById('conf-f').value),
+        c: parseInt(document.getElementById('conf-c').value),
+        category: category,
+        id: Date.now(),
+        date: date, // ユーザーが変更した日付を使用
+        image: state.currentMealImage
+    };
+
+    state.history.push(entry);
+    localStorage.setItem('nutri_history', JSON.stringify(state.history));
+
+    showAiMessage(`${name} を記録しました！✨`);
+    
+    // フォームリセット
+    state.currentMealImage = null;
+    document.getElementById('meal-preview-container').classList.add('hidden');
+    document.querySelector('.upload-placeholder').classList.remove('hidden');
+    document.getElementById('meal-note').value = '';
+
+    closeConfirmModal();
+    switchTab('dashboard');
 }
 
 /**
@@ -441,26 +528,65 @@ function initTypeSelector() {
 }
 
 /**
+ * カレンダーのスコープ切り替え (日/週/月)
+ */
+function initScopeSelector() {
+    const btns = document.querySelectorAll('#analysis-scope-selector .segment-btn');
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCalendarTab();
+        };
+    });
+}
+
+function renderCalendarTab() {
+    const scope = document.querySelector('#analysis-scope-selector .segment-btn.active').dataset.scope;
+    const calendarView = document.getElementById('calendar-view-container');
+    const navView = document.getElementById('calendar-header');
+    const reportView = document.getElementById('aggregation-report');
+
+    if (scope === 'day') {
+        calendarView.classList.remove('hidden');
+        navView.classList.remove('hidden');
+        reportView.classList.add('hidden');
+        renderCalendar();
+    } else {
+        calendarView.classList.add('hidden');
+        navView.classList.add('hidden');
+        reportView.classList.remove('hidden');
+        renderAggregateReport(scope);
+    }
+}
+
+/**
  * カレンダー生成エンジン
  */
 function renderCalendar() {
     const grid = document.getElementById('calendar-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
+    const monthDisplay = document.getElementById('current-month-display');
+    if (!grid || !monthDisplay) return;
 
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
+    grid.innerHTML = '';
+    
+    // 現在の表示月をセット
+    const year = state.viewDate.getFullYear();
+    const month = state.viewDate.getMonth();
+    monthDisplay.textContent = `${year}年 ${month + 1}月`;
 
     const firstDay = new Date(year, month, 1);
     const dayOfWeek = firstDay.getDay();
     const lastDayNum = new Date(year, month + 1, 0).getDate();
 
+    // 空白埋め
     for (let i = 0; i < dayOfWeek; i++) {
         const empty = document.createElement('div');
         empty.className = 'calendar-day empty';
         grid.appendChild(empty);
     }
+
+    const todayStr = new Date().toISOString().split('T')[0];
 
     for (let i = 1; i <= lastDayNum; i++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -468,7 +594,7 @@ function renderCalendar() {
         const hasAct = state.activities.some(a => a.date.startsWith(dateStr));
 
         const dayEl = document.createElement('div');
-        const isToday = i === today.getDate();
+        const isToday = dateStr === todayStr;
         dayEl.className = `calendar-day ${isToday ? 'today' : ''}`;
         dayEl.innerHTML = `
             <span class="day-num">${i}</span>
@@ -486,6 +612,141 @@ function renderCalendar() {
     }
 }
 
+function changeMonth(offset) {
+    state.viewDate.setMonth(state.viewDate.getMonth() + offset);
+    renderCalendar();
+}
+
+/**
+ * 集計レポートの描画 (週次/月次)
+ */
+function renderAggregateReport(scope) {
+    const reportEl = document.getElementById('aggregation-report');
+    if (!reportEl) return;
+
+    // データのフィルタリング (週次: 直近7日, 月次: 表示月の全データ)
+    let filteredHistory = [];
+    let title = "";
+    
+    if (scope === 'week') {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        filteredHistory = state.history.filter(h => new Date(h.date) >= sevenDaysAgo);
+        title = "直近7日間の分析レポート";
+    } else {
+        const year = state.viewDate.getFullYear();
+        const month = state.viewDate.getMonth();
+        filteredHistory = state.history.filter(h => {
+            const d = new Date(h.date);
+            return d.getFullYear() === year && d.getMonth() === month;
+        });
+        title = `${year}年 ${month + 1}月の分析レポート`;
+    }
+
+    const avg = calculateAverageNutrients(filteredHistory);
+    const targets = calculateDailyTargets(state.profile);
+
+    reportEl.innerHTML = `
+        <h3 style="margin-bottom:20px; font-family:var(--font-accent);">${title}</h3>
+        <div class="report-grid">
+            <div class="report-card">
+                <span>平均摂取カロリー</span>
+                <div class="val">${Math.round(avg.calories)} kcal</div>
+            </div>
+            <div class="report-card">
+                <span>目標カロリー</span>
+                <div class="val">${targets.calories} kcal</div>
+            </div>
+            <div class="report-card full">
+                <span>1日あたりの平均バランス</span>
+                <div class="report-chart-container">
+                    <canvas id="aggregateChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="report-card full" style="border-left: 4px solid var(--accent-success);">
+            <p style="font-size:13px; color:var(--text-main); font-weight:600;">AIによる分析トピック</p>
+            <p style="font-size:12px; color:var(--text-secondary); margin-top:5px;">
+                ${filteredHistory.length > 0 ? 
+                  `この期間は平均して目標の ${Math.round((avg.calories / targets.calories) * 100)}% のエネルギーを摂取しています。
+                   ${avg.veg > 300 ? '野菜の摂取量が非常に安定しています！' : 'もう少し意識的に野菜を増やすとさらに良くなります。'}` 
+                  : '十分なデータがありません。毎日の食事を記録しましょう！'}
+            </p>
+        </div>
+    `;
+
+    // 分析用グラフの描画
+    setTimeout(() => {
+        const ctx = document.getElementById('aggregateChart');
+        if (ctx) renderSummaryChart(ctx, avg, targets);
+    }, 100);
+}
+
+function calculateAverageNutrients(history) {
+    if (history.length === 0) return { calories: 0, p: 0, f: 0, c: 0, salt: 0, veg: 0, gyveg: 0, fiber: 0 };
+    
+    // 日付ごとに集計
+    const dailyTotals = {};
+    history.forEach(h => {
+        const date = h.date.split('T')[0];
+        if (!dailyTotals[date]) dailyTotals[date] = { calories: 0, p: 0, f: 0, c: 0, salt: 0, veg: 0, gyveg: 0, fiber: 0 };
+        dailyTotals[date].calories += h.calories || 0;
+        dailyTotals[date].p += h.p || 0;
+        dailyTotals[date].f += h.f || 0;
+        dailyTotals[date].c += h.c || 0;
+        dailyTotals[date].salt += h.salt || 0;
+        dailyTotals[date].veg += h.veg || 0;
+        dailyTotals[date].gyveg += h.gyveg || 0;
+        dailyTotals[date].fiber += h.fiber || 0;
+    });
+
+    const dates = Object.keys(dailyTotals);
+    const sum = { calories: 0, p: 0, f: 0, c: 0, salt: 0, veg: 0, gyveg: 0, fiber: 0 };
+    dates.forEach(d => {
+        for (let k in sum) sum[k] += dailyTotals[d][k];
+    });
+
+    for (let k in sum) sum[k] /= dates.length;
+    return sum;
+}
+
+function renderSummaryChart(ctx, avg, targets) {
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['カロリー', 'P', 'F', 'C', '塩分', '野菜', '緑黄色', '繊維'],
+            datasets: [{
+                label: '平均達成度(%)',
+                data: [
+                    (avg.calories / targets.calories) * 100,
+                    (avg.p / targets.p) * 100,
+                    (avg.f / targets.f) * 100,
+                    (avg.c / targets.c) * 100,
+                    (avg.salt / targets.salt) * 100,
+                    (avg.veg / targets.veg) * 100,
+                    (avg.gyveg / targets.gyveg) * 100,
+                    (avg.fiber / targets.fiber) * 100
+                ],
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                borderColor: '#3b82f6',
+                pointBackgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            scales: {
+                r: {
+                    min: 0,
+                    max: 120,
+                    ticks: { display: false },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
 function showDayDetails(dateStr) {
     const detailEl = document.getElementById('selected-day-details');
     if (!detailEl) return;
@@ -494,18 +755,57 @@ function showDayDetails(dateStr) {
     const acts = state.activities.filter(a => a.date.startsWith(dateStr));
 
     if (meals.length === 0 && acts.length === 0) {
-        detailEl.innerHTML = `<p>${t('cal_no_data')}</p>`;
+        detailEl.innerHTML = `<p style="text-align:center; color:var(--text-secondary); padding:20px;">${t('cal_no_data')}</p>`;
     } else {
-        let html = `<h4 style="margin-bottom:10px;">${dateStr} の記録</h4>`;
+        let html = `<h4 style="margin-bottom:15px; font-family:var(--font-accent);">${dateStr} の詳細記録</h4>`;
+        
         if (meals.length > 0) {
-            html += `<h5>食事</h5><ul>` + meals.map(m => `<li>${m.name} (${m.calories}kcal)</li>`).join('') + `</ul>`;
+            html += `<h5 style="margin:10px 0;">🥗 食事</h5>`;
+            html += meals.map(m => `
+                <div class="detail-item-card">
+                    <div class="detail-item-header">
+                        <span class="detail-item-name">${m.name}</span>
+                        <span style="color:var(--accent-success); font-weight:700;">${m.calories} kcal</span>
+                    </div>
+                    <div class="nutrient-badges">
+                        <div class="n-badge"><span>P</span>${m.p}g</div>
+                        <div class="n-badge"><span>F</span>${m.f}g</div>
+                        <div class="n-badge"><span>C</span>${m.c}g</div>
+                        <div class="n-badge"><span>塩</span>${m.salt}g</div>
+                        <div class="n-badge"><span>筋</span>${m.veg}g</div>
+                        <div class="n-badge"><span>緑</span>${m.gyveg}g</div>
+                        <div class="n-badge"><span>繊</span>${m.fiber}g</div>
+                        <div class="n-badge"><span>種</span>${m.category || '自炊'}</div>
+                    </div>
+                </div>
+            `).join('');
         }
+        
         if (acts.length > 0) {
-            html += `<h5 style="margin-top:10px;">運動</h5><ul>` + acts.map(a => `<li>${t('act_' + a.type)} (${a.minutes}分: ${a.calories}kcal)</li>`).join('') + `</ul>`;
+            html += `<h5 style="margin:20px 0 10px;">🏃 運動</h5>`;
+            html += acts.map(a => `
+                <div class="detail-item-card">
+                    <div class="detail-item-header">
+                        <span class="detail-item-name">${t('act_' + a.type)}</span>
+                        <span style="color:var(--accent-warning); font-weight:700;">-${a.calories} kcal</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-secondary);">${a.minutes} 分間 継続</div>
+                </div>
+            `).join('');
         }
         detailEl.innerHTML = html;
     }
     detailEl.classList.remove('hidden');
+}
+
+/**
+ * 設定値の復元
+ */
+function initSettingsFields() {
+    const keyInput = document.getElementById('gemini-api-key');
+    if (keyInput && state.settings.geminiApiKey) {
+        keyInput.value = state.settings.geminiApiKey;
+    }
 }
 
 /**

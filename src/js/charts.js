@@ -29,14 +29,14 @@ function renderDashboardCharts(totals, targets) {
     fulfillmentChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: items.map(i => i.label),
+            labels: items.map(i => `${i.label} (${Math.round(i.val)}${i.unit})`),
             datasets: [
                 {
-                    label: 'Actual',
+                    label: 'Actual %',
                     data: items.map(i => (i.val / i.target) * 100),
-                    backgroundColor: items.map(i => i.color),
+                    backgroundColor: items.map(i => (i.val / i.target) * 100 > 100 ? '#ef4444' : i.color),
                     borderRadius: 6,
-                    barThickness: 16
+                    barThickness: 18
                 }
             ]
         },
@@ -45,16 +45,36 @@ function renderDashboardCharts(totals, targets) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: { max: 150, min: 0, ticks: { callback: v => v + '%' } },
-                y: { grid: { display: false } }
+                x: { 
+                    max: 150, 
+                    min: 0, 
+                    grid: {
+                        color: (context) => context.tick.value === 100 ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.05)',
+                        lineWidth: (context) => context.tick.value === 100 ? 2 : 1
+                    },
+                    ticks: { 
+                        stepSize: 20,
+                        callback: v => v + '%' 
+                    } 
+                },
+                y: { 
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 11, weight: '600' },
+                        color: '#94a3b8'
+                    }
+                }
             },
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                    titleFont: { size: 14 },
+                    bodyFont: { size: 13 },
                     callbacks: {
                         label: (ctx) => {
                             const item = items[ctx.dataIndex];
-                            return `${item.val.toFixed(1)} / ${item.target.toFixed(1)}${item.unit} (${ctx.raw.toFixed(1)}%)`;
+                            return `実績: ${item.val.toFixed(1)}${item.unit} / 目標: ${item.target.toFixed(1)}${item.unit} (${ctx.raw.toFixed(1)}%)`;
                         }
                     }
                 }

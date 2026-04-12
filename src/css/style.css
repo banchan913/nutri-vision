@@ -547,14 +547,134 @@ textarea {
     animation: slideUp 0.3s ease-out;
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
+/* --- New UX Enhancements --- */
+.analysis-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(10, 14, 20, 0.95); backdrop-filter: blur(10px);
+    z-index: 3000; display: flex; justify-content: center; align-items: center; text-align: center;
+}
+.spinner-rich {
+    width: 60px; height: 60px; border: 4px solid rgba(59, 130, 246, 0.1);
+    border-top: 4px solid var(--accent-primary); border-radius: 50%;
+    animation: spin 1s linear infinite; margin: 0 auto 20px;
+}
+.progress-bar-container {
+    width: 240px; height: 6px; background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px; margin: 15px auto; overflow: hidden;
+}
+.progress-bar-fill { height: 100%; background: var(--accent-primary); width: 0%; transition: width 0.3s; }
+.analysis-eta { font-size: 12px; color: var(--text-secondary); }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.modal-content {
+    background: var(--bg-card); width: 90%; max-width: 440px; border-radius: 24px;
+    padding: 25px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+.confirm-form .input-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.nutrient-edit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.mini-input label { font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+.mini-input input { width: 100%; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 8px; color: white; }
+.category-selector { display: flex; gap: 8px; }
+.cat-btn { flex: 1; padding: 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 10px; text-align: center; font-size: 12px; font-weight: 600; cursor: pointer; }
+.cat-btn.active { background: var(--accent-primary); border-color: var(--accent-primary); color: white; }
+.modal-actions { display: flex; gap: 10px; margin-top: 25px; }
+
+.detail-item-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 15px; margin-bottom: 12px; }
+.detail-item-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.detail-item-name { font-weight: 700; font-size: 15px; }
+.nutrient-badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.n-badge { background: rgba(255, 255, 255, 0.03); border-radius: 6px; padding: 4px; text-align: center; font-size: 10px; }
+.n-badge span { display: block; color: var(--text-secondary); font-size: 8px; margin-bottom: 2px; }
+
+.picker-item:hover { background: rgba(255, 255, 255, 0.05); cursor: pointer; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Visibility & Analysis Enhancements --- */
+
+/* Calendar Navigation */
+.calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0 20px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 10px;
+    border-radius: 14px;
+}
+
+.calendar-nav h2 {
+    font-size: 18px;
+    font-family: var(--font-accent);
+    font-weight: 700;
+}
+
+.calendar-nav button {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.calendar-nav button:active {
+    background: var(--accent-primary);
+}
+
+/* Aggregation Report */
+.aggregation-report {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.report-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.report-card {
+    background: var(--bg-card);
+    padding: 15px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+}
+
+.report-card span {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.report-card .val {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: var(--font-accent);
+    color: var(--accent-primary);
+}
+
+.report-card.full {
+    grid-column: span 2;
+    text-align: left;
+}
+
+.report-chart-container {
+    height: 250px;
+    margin-top: 15px;
+}
+
+/* Chart Grid Enhancement */
+.chart-grid-line {
+    border-right: 1px dashed rgba(255, 255, 255, 0.1);
 }
