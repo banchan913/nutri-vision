@@ -2,7 +2,7 @@
  * Nutri-Vision AI Analysis Engine (Gemini 1.5 Flash)
  */
 
-const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
 
 /**
  * 食事の画像を解析し、栄養素を推定します
@@ -86,7 +86,7 @@ async function testApiKeyConnection(apiKey) {
     if (!apiKey) throw new Error("APIキーが入力されていません。");
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
         
         if (!response.ok) {
             const error = await response.json();
