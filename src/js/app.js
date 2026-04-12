@@ -22,7 +22,11 @@ async function initApp() {
     initNavigation();
     initRecordingFunctions();
     initActivityButtons();
+    initTimePresets();
     initTypeSelector();
+    initPickers();
+    initProfileSelectors();
+    initApiTest();
     initProfileFields();
     initProfileSummary();
 
@@ -48,6 +52,138 @@ function renderApp() {
     if (typeof renderPredictionChart === 'function') renderPredictionChart(prediction);
 
     if (state.activeTab === 'calendar') renderCalendar();
+}
+
+/**
+ * スクロールピッカーの初期化
+ */
+function initPickers() {
+    const pickers = [
+        { id: 'picker-age', min: 10, max: 100, suffix: '歳', target: 'profile-age' },
+        { id: 'picker-height', min: 100, max: 230, suffix: 'cm', target: 'profile-height' },
+        { id: 'picker-weight', min: 30, max: 200, suffix: 'kg', target: 'profile-weight' }
+    ];
+
+    pickers.forEach(p => {
+        const el = document.getElementById(p.id);
+        if (!el) return;
+        el.innerHTML = '';
+
+        // 空白
+        el.innerHTML += '<div class="picker-item"></div>';
+        for (let i = p.min; i <= p.max; i++) {
+            const item = document.createElement('div');
+            item.className = 'picker-item';
+            item.textContent = `${i}${p.suffix}`;
+            item.dataset.val = i;
+            el.appendChild(item);
+        }
+        el.innerHTML += '<div class="picker-item"></div>';
+
+        el.onscroll = () => {
+            const itemHeight = 40;
+            const index = Math.round(el.scrollTop / itemHeight);
+            const items = el.querySelectorAll('.picker-item[data-val]');
+
+            items.forEach((item, i) => {
+                item.classList.toggle('selected', i === index);
+                if (i === index) {
+                    const targetEl = document.getElementById(p.target);
+                    if (targetEl) targetEl.value = item.dataset.val;
+                }
+            });
+        };
+
+        const defaultIdx = Math.floor((p.max - p.min) / 2);
+        setTimeout(() => el.scrollTo({ top: defaultIdx * 40, behavior: 'instant' }), 100);
+    });
+}
+
+/**
+ * 性別・活動レベルのボタンセレクター初期化
+ */
+function initProfileSelectors() {
+    const genderBtns = document.querySelectorAll('#profile-gender-selector .segment-btn');
+    genderBtns.forEach(btn => {
+        btn.onclick = () => {
+            genderBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('profile-gender').value = btn.dataset.val;
+        };
+    });
+
+    const palOptions = document.querySelectorAll('.pal-option');
+    palOptions.forEach(opt => {
+        opt.onclick = () => {
+            palOptions.forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            document.getElementById('profile-pal').value = opt.dataset.val;
+        };
+    });
+}
+
+/**
+ * 運動時間のプリセット初期化
+ */
+function initTimePresets() {
+    const btns = document.querySelectorAll('.time-btn');
+    const hiddenInput = document.getElementById('act-manual-min');
+
+    btns.forEach(btn => {
+        btn.onclick = () => {
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            hiddenInput.value = btn.dataset.min;
+        };
+    });
+}
+
+/**
+ * API接続テストの実装
+ */
+function initApiTest() {
+    const testBtn = document.getElementById('api-test-btn');
+    const resultArea = document.getElementById('api-test-results');
+    if (!testBtn || !resultArea) return;
+
+    testBtn.onclick = async () => {
+        const apiKey = document.getElementById('gemini-api-key').value;
+        if (!apiKey) {
+            showAiMessage("APIキーを入力してください。");
+            return;
+        }
+
+        testBtn.disabled = true;
+        const originalHTML = testBtn.innerHTML;
+        testBtn.innerHTML = '<i class="ph ph-circle-notch animate-spin"></i> テスト中...';
+        resultArea.classList.add('hidden');
+
+        try {
+            const models = await testApiKeyConnection(apiKey);
+            showAiMessage("接続に成功しました！✨");
+
+            let html = '<div style="margin-bottom:8px; font-weight:700;">利用可能なモデル:</div>';
+            models.forEach(m => {
+                const name = m.name.replace('models/', '');
+                const isRec = name === 'gemini-1.5-flash';
+                html += `
+                    <div class="model-item">
+                        <span>${name}</span>
+                        ${isRec ? '<span class="badge-recommended">推奨</span>' : ''}
+                    </div>
+                `;
+            });
+            resultArea.innerHTML = html;
+            resultArea.classList.remove('hidden');
+        } catch (err) {
+            showAiMessage(err.message);
+            resultArea.innerHTML = `<div style="color:var(--accent-error); padding:10px;">Error: ${err.message}</div>`;
+            resultArea.classList.remove('hidden');
+        } finally {
+            testBtn.disabled = false;
+            testBtn.innerHTML = originalHTML;
+        }
+    };
 }
 
 /**
@@ -283,24 +419,39 @@ function renderCalendar() {
     grid.innerHTML = '';
 
     const today = new Date();
-    for (let i = 27; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(today.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+    const year = today.getFullYear();
+    const month = today.getMonth();
 
+    const firstDay = new Date(year, month, 1);
+    const dayOfWeek = firstDay.getDay();
+    const lastDayNum = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < dayOfWeek; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-day empty';
+        grid.appendChild(empty);
+    }
+
+    for (let i = 1; i <= lastDayNum; i++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         const hasMeal = state.history.some(h => h.date.startsWith(dateStr));
         const hasAct = state.activities.some(a => a.date.startsWith(dateStr));
 
         const dayEl = document.createElement('div');
-        dayEl.className = `calendar-day ${dateStr === today.toISOString().split('T')[0] ? 'today' : ''}`;
+        const isToday = i === today.getDate();
+        dayEl.className = `calendar-day ${isToday ? 'today' : ''}`;
         dayEl.innerHTML = `
-            <span class="day-num">${date.getDate()}</span>
+            <span class="day-num">${i}</span>
             <div class="marks">
                 ${hasMeal ? '<span class="mark meal"></span>' : ''}
                 ${hasAct ? '<span class="mark act"></span>' : ''}
             </div>
         `;
-        dayEl.onclick = () => showDayDetails(dateStr);
+        dayEl.onclick = () => {
+            document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+            dayEl.classList.add('selected');
+            showDayDetails(dateStr);
+        };
         grid.appendChild(dayEl);
     }
 }

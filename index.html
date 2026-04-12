@@ -64,7 +64,9 @@
                     </div>
                 </div>
                 <div id="calendar-view-container" class="calendar-container">
-                    <!-- JSでカレンダーグリッドと日別サマリーを生成 -->
+                    <div class="calendar-header-grid">
+                        <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+                    </div>
                     <div id="calendar-grid" class="calendar-grid"></div>
                     <div id="selected-day-details" class="day-details card hidden"></div>
                 </div>
@@ -102,16 +104,19 @@
                     </div>
                 </div>
 
-                <!-- 運動記録エリア (15分単位ボタン) -->
+                <!-- 運動記録エリア (プリセットボタン) -->
                 <div id="activity-record-area" class="record-content hidden">
-                    <h3 data-i18n="rec_act_title">活動を選択（15分単位）</h3>
-                    <div class="activity-grid" id="activity-buttons">
-                        <!-- JSでボタンを生成: ウォーキング, サイクリング, 家事, 筋トレ等 -->
+                    <h3 data-i18n="rec_act_title">活動を選択</h3>
+                    <div class="activity-grid" id="activity-buttons"></div>
+                    
+                    <h3 style="margin-top: 25px;">時間を選択 (分)</h3>
+                    <div class="time-presets" id="activity-time-presets">
+                        <div class="time-btn" data-min="15">15分</div>
+                        <div class="time-btn active" data-min="30">30分</div>
+                        <div class="time-btn" data-min="45">45分</div>
+                        <div class="time-btn" data-min="60">60分</div>
                     </div>
-                    <div class="manual-input">
-                        <label data-i18n="rec_act_manual">または合計時間 (分)</label>
-                        <input type="number" id="act-manual-min" value="15" step="15">
-                    </div>
+                    <input type="hidden" id="act-manual-min" value="30">
                 </div>
             </section>
 
@@ -135,29 +140,54 @@
                             </div>
                             <input type="hidden" id="profile-gender" value="male">
                         </div>
+
                         <div class="profile-input-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <div class="input-field">
                                 <label data-i18n="set_age">年齢</label>
-                                <input type="number" id="profile-age" placeholder="歳">
+                                <div class="picker-container">
+                                    <div class="scroll-picker" id="picker-age"></div>
+                                    <div class="picker-highlight"></div>
+                                </div>
+                                <input type="hidden" id="profile-age">
                             </div>
                             <div class="input-field">
                                 <label data-i18n="set_height">身長 (cm)</label>
-                                <input type="number" id="profile-height" placeholder="cm">
+                                <div class="picker-container">
+                                    <div class="scroll-picker" id="picker-height"></div>
+                                    <div class="picker-highlight"></div>
+                                </div>
+                                <input type="hidden" id="profile-height">
                             </div>
                         </div>
+
                         <div class="input-field">
                             <label data-i18n="set_weight">体重 (kg)</label>
-                            <input type="number" id="profile-weight" placeholder="kg">
+                            <div class="picker-container">
+                                <div class="scroll-picker" id="picker-weight"></div>
+                                <div class="picker-highlight"></div>
+                            </div>
+                            <input type="hidden" id="profile-weight">
                         </div>
+
                         <div class="input-field">
                             <label data-i18n="set_pal_title">身体活動レベル</label>
-                            <div id="profile-pal-selector" class="segment-selector">
-                                <div class="segment-btn active" data-val="1.5">低い</div>
-                                <div class="segment-btn" data-val="1.75">ふつう</div>
-                                <div class="segment-btn" data-val="2.0">高い</div>
+                            <div id="profile-pal-container">
+                                <div class="pal-option active" data-val="1.5">
+                                    <span class="pal-title">レベル I (低い)</span>
+                                    <span class="pal-desc">生活の大部分が座位で、静止的な活動が中心。</span>
+                                </div>
+                                <div class="pal-option" data-val="1.75">
+                                    <span class="pal-title">レベル II (ふつう)</span>
+                                    <span class="pal-desc">座位中心だが、通勤・家事、軽い運動等を含む。</span>
+                                </div>
+                                <div class="pal-option" data-val="2.0">
+                                    <span class="pal-title">レベル III (高い)</span>
+                                    <span class="pal-desc">移動や立位が多い、または活発な運動習慣がある。</span>
+                                </div>
                             </div>
                             <input type="hidden" id="profile-pal" value="1.75">
                         </div>
+
                         <div style="display: flex; gap: 10px;">
                             <button class="btn btn-primary" onclick="saveProfile()" style="flex: 2;"><span data-i18n="btn_save">保存して計算</span></button>
                             <button class="btn btn-secondary" onclick="toggleProfileEdit(false)" style="flex: 1;"><span data-i18n="btn_cancel">戻る</span></button>
@@ -182,7 +212,11 @@
                         <label>Gemini API Key</label>
                         <input type="password" id="gemini-api-key" placeholder="AI解析に必要です">
                     </div>
-                    <button class="btn btn-primary" onclick="saveSettings()" data-i18n="btn_save">設定を保存</button>
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button class="btn btn-primary" onclick="saveSettings()" style="flex: 1;" data-i18n="btn_save">設定を保存</button>
+                        <button class="btn btn-secondary" id="api-test-btn" style="flex: 1;"><i class="ph ph-plug-connect"></i> 接続テスト</button>
+                    </div>
+                    <div id="api-test-results" class="hidden api-models-list"></div>
                 </div>
             </section>
         </main>

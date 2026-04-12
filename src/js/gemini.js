@@ -78,3 +78,25 @@ async function analyzeMeal(base64Image, note = "") {
         throw err;
     }
 }
+
+/**
+ * APIキーの接続テストを行い、利用可能なモデル一覧を返します
+ */
+async function testApiKeyConnection(apiKey) {
+    if (!apiKey) throw new Error("APIキーが入力されていません。");
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || "接続に失敗しました。キーを確認してください。");
+        }
+
+        const data = await response.json();
+        return data.models || [];
+    } catch (err) {
+        console.error("API Test Error:", err);
+        throw err;
+    }
+}
