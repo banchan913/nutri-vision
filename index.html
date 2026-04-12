@@ -133,7 +133,7 @@
 
                     <!-- 自由記述補足エリア -->
                     <div class="meal-note-section" style="margin-bottom: 20px; text-align: left;">
-                        <label style="display: block; font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;" data-i18n="meal_note_label">補足情報（任意）</label>
+                        <label for="meal-note" style="display: block; font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;" data-i18n="meal_note_label">補足情報（任意）</label>
                         
                         <!-- 寄り添うスタッフのヒントエリア -->
                         <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); padding: 15px; border-radius: var(--radius-md); margin-bottom: 12px; font-size: 13px; line-height: 1.6; color: var(--text-secondary);">
@@ -260,7 +260,7 @@
                         <!-- 編集モード: 入力フォーム (初期状態は隠す) -->
                         <div id="profile-edit-area" class="settings-form-grid" style="display: none; flex-direction: column; gap: 20px;">
                             <div class="setting-item">
-                                <label data-i18n="set_gender">性別</label>
+                                <label for="profile-gender" data-i18n="set_gender">性別</label>
                                 <div class="profile-options" id="profile-gender-selector">
                                     <div class="segment-btn" data-val="male" data-i18n="set_male">男性</div>
                                     <div class="segment-btn" data-val="female" data-i18n="set_female">女性</div>
@@ -269,7 +269,7 @@
                             </div>
 
                             <div class="setting-item">
-                                <label data-i18n="set_age">年齢 (歳)</label>
+                                <label for="profile-age" data-i18n="set_age">年齢 (歳)</label>
                                 <div class="profile-options" id="profile-age-selector">
                                     <div class="segment-btn" data-val="20">20代</div>
                                     <div class="segment-btn" data-val="30">30代</div>
@@ -283,19 +283,19 @@
 
                             <div class="profile-row-grid">
                                 <div class="setting-item">
-                                    <label data-i18n="set_height">身長 (cm)</label>
+                                    <label for="profile-height" data-i18n="set_height">身長 (cm)</label>
                                     <input type="number" id="profile-height" placeholder="cm" hidden>
                                     <div class="scroll-picker-container" id="picker-height"></div>
                                 </div>
                                 <div class="setting-item">
-                                    <label data-i18n="set_weight">体重 (kg)</label>
+                                    <label for="profile-weight" data-i18n="set_weight">体重 (kg)</label>
                                     <input type="number" id="profile-weight" placeholder="kg" hidden>
                                     <div class="scroll-picker-container" id="picker-weight"></div>
                                 </div>
                             </div>
 
                             <div class="setting-item" style="grid-column: span 2;">
-                                <label data-i18n="set_pal_title">基本の身体活動レベル (PAL)</label>
+                                <label for="profile-pal" data-i18n="set_pal_title">基本の身体活動レベル (PAL)</label>
                                 <div class="pal-guide" style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4;" data-i18n="set_pal_desc">
                                     <strong>低い</strong>: 生活の大部分が座位<br>
                                     <strong>ふつう</strong>: 軽いスポーツ等を含む<br>
@@ -334,7 +334,7 @@
                             </ol>
                         </div>
                         <div class="setting-item">
-                            <label data-i18n="set_ai_key">Gemini APIキー</label>
+                            <label for="gemini-key" data-i18n="set_ai_key">Gemini APIキー</label>
                             <div style="display: flex; gap: 8px;">
                                 <input type="password" id="gemini-key" placeholder="APIキーを入力" style="flex: 1;">
                                 <button class="btn btn-secondary" onclick="testGeminiConnection()" id="test-api-btn"><span data-i18n="set_btn_test">テスト</span></button>
@@ -378,7 +378,7 @@
                             </a>
                         </div>
                         <div class="setting-item">
-                            <label>GAS ウェブアプリURL</label>
+                            <label for="gas-url">GAS ウェブアプリURL</label>
                             <input type="text" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec" style="margin-bottom: 8px;">
                             <div class="gas-hint" style="font-size: 11px; color: var(--accent-warning); line-height: 1.4;">
                                 ⚠️ <strong>重要</strong>: GASの「デプロイ」設定で、アクセスできるユーザーを「<strong>全員</strong>（Anyone）」にする必要があります。「自分のみ」では通信エラー（CORS）が発生します。

@@ -1,4 +1,4 @@
-const currentLang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+var currentLang = navigator.language.startsWith('ja') ? 'ja' : 'en';
 
 const translations = {
     ja: {
@@ -27,8 +27,8 @@ const translations = {
         "dash_veg_fiber": "野菜・食物繊維の充足度",
         "dash_fiber": "食物繊維",
         "dash_veg": "野菜の総量",
-        "dash_gyveg": "そのうち緑黄色野菜",
-        "dash_salt_today": "今日の食塩摂取量",
+        "dash_gyveg": "緑黄色野菜",
+        "dash_salt_today": "食塩摂取量",
         "dash_burn_today": "今日の消費エネルギー",
         "dash_burn_ext": "運動による消費分",
         "target_prefix": "目標: ",
@@ -53,7 +53,7 @@ const translations = {
         "cal_stats_title": "期間中の合計統計",
         "cal_no_record": "の記録は見つかりませんでした。今日から記録を始めてみませんか？",
         "cal_intake": "総摂取量",
-        "cal_intake_detailed": "摂取（合計）",
+        "cal_intake_detailed": "摂取",
         "cal_burn": "総消費量",
 
         // Meal Log
@@ -63,11 +63,12 @@ const translations = {
         "meal_btn_photo": "写真を選んでください",
         "meal_analyzing": "大切に解析しています...",
         "meal_note_label": "AIへの補足メッセージ（任意）",
-        "meal_note_placeholder": "材料や分量を教えていただけると、解析がもっと正確になります",
+        "meal_note_placeholder": "メニュー名や材料（鶏肉200g、油不使用など）を教えてください。レシピのURLを貼るだけでもOKですよ！AIがより正確に分析します。",
         "meal_note_help_title": "💡 補足を書くコツ",
         "meal_note_help_desc": "AIは写真から『隠れた材料（油の種類、正確な重さ、砂糖の量）』を推測するのが少し苦手です。例えば『鶏胸肉200g、油不使用』のように少し教えていただけると、あなたにより正確なアドバイスをお届けできますよ。",
         "meal_exercise_help": "運動をされた場合はこちらから",
         "meal_btn_exercise": "運動を記録しましょう",
+        "meal_btn_analyze_text": "テキストメッセージで解析・記録",
 
         // Analysis
         "ana_title": "未来のあなたへの予想図",
@@ -154,7 +155,7 @@ const translations = {
         "msg_need_apikey": "AI解析の準備（APIキー）をお願いいたします。",
         "msg_gas_pro_only": "クラウド同期（GAS）は、note配布の『Pro版限定』機能です。設定マニュアルと専用コードはnoteでご案内しています。ぜひチェックしてみてくださいね！",
         "msg_copied_gas": "同期用スクリプトをお預かりしました。これをスプレッドシート側に貼り付けてくださいね。",
-        "meal_note_placeholder": "ここにメッセージを入力（例：鶏肉200g、油不使用）",
+        "meal_note_placeholder": "メニュー名や材料（鶏肉200g、油不使用など）を教えてください。レシピのURLを貼るだけでもOKですよ！AIがより正確に分析します。",
 
         // Gemini
         "ai_status_analyzing": "大切に解析しています...",
@@ -221,7 +222,7 @@ const translations = {
         "dash_fiber": "Fiber",
         "dash_veg": "Veggies",
         "dash_gyveg": "Green.Y Veg",
-        "dash_salt_today": "Salt Equivalent (Today)",
+        "dash_salt_today": "Salt Equivalent",
         "dash_burn_today": "Energy Burned (Today)",
         "dash_burn_ext": "Burned by Exercise",
         "target_prefix": "Target: ",
@@ -245,7 +246,7 @@ const translations = {
         "cal_stats_title": "Period Stats",
         "cal_no_record": "No record for",
         "cal_intake": "Intake",
-        "cal_intake_detailed": "Intake Calories",
+        "cal_intake_detailed": "Intake",
         "cal_burn": "Burned",
 
         "meal_mode_photo": "Photo AI",
@@ -254,9 +255,10 @@ const translations = {
         "meal_btn_photo": "Select Photo",
         "meal_analyzing": "Analyzing Photo...",
         "meal_note_label": "Additional Info (Optional)",
-        "meal_note_placeholder": "Enter ingredients, quantity, or cooking method to improve accuracy (e.g., 200g chicken breast, boiled, no oil)",
+        "meal_note_placeholder": "Tell me the dish name or ingredients (e.g., 200g chicken breast, no oil). You can also paste a recipe URL! This helps the AI analyze more accurately.",
         "meal_exercise_help": "Log your exercise here",
         "meal_btn_exercise": "Log Exercise",
+        "meal_btn_analyze_text": "Analyze with Text Content",
 
         "ana_title": "Nutrition Trend & Prediction",
         "ana_expected_weight": "Expected Weight (Next Month)",

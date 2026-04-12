@@ -1,5 +1,5 @@
-// App State & UI Controller
-const state = {
+// App State & UI Controller (Exposed globally for inter-script access)
+window.state = {
     activeTab: 'dashboard',
     history: JSON.parse(localStorage.getItem('nutri_history') || '[]'),
     activities: JSON.parse(localStorage.getItem('nutri_activities') || '[]'),
@@ -12,8 +12,9 @@ const state = {
     isUpdating: false,
     isInitializing: true,
     calendarScope: 'day',
-    selectedDateKey: toCanonical(new Date().toLocaleDateString('ja-JP'))
+    selectedDateKey: (new Date()).getFullYear() + '-' + String((new Date()).getMonth() + 1).padStart(2, '0') + '-' + String((new Date()).getDate()).padStart(2, '0')
 };
+const state = window.state;
 
 const METS_MAP = { walking: 3.5, jogging: 7.0, cycling: 4.0, cleaning: 3.3, stairs: 4.0, training: 5.0 };
 
@@ -708,14 +709,7 @@ function renderCalendar() {
     }
 }
 
-function toCanonical(dStr) {
-    if (!dStr) return '';
-    try {
-        const d = new Date(dStr.replace(/\//g, '-'));
-        if (isNaN(d.getTime())) return dStr;
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    } catch(e) { return dStr; }
-}
+// toCanonical is now provided by charts.js (global scope)
 
 function renderDayDetailsByDate(dateKey, label) {
     const targetKey = toCanonical(dateKey);

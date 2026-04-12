@@ -34,22 +34,34 @@ async function analyzeImage(base64Data, mimeType, mode = 'food', additionalText 
         ? "必ず日本の一般的な料理名（例：ラーメン、おにぎり、サラダ）を使用し、日本語で出力してください。"
         : "Output the dish name and properties in English.";
     
-    let userPrompt = mode === 'food' 
-        ? `この食事画像/This food imageを解析してください。${langSuffixStr}`
-        : `この栄養成分表示の画像/This nutrition labelを解析してください。全ての項目名を指定された言語で出力してください。${langSuffixStr}`;
+    let userPrompt = "";
+    if (base64Data) {
+        userPrompt = mode === 'food' 
+            ? `この食事画像/This food imageを解析してください。${langSuffixStr}`
+            : `この栄養成分表示の画像/This nutrition labelを解析してください。全ての項目名を指定された言語で出力してください。${langSuffixStr}`;
+    } else {
+        userPrompt = currentLang === 'ja'
+            ? `以下の内容から、食事の栄養素を推測してください。${langSuffixStr}`
+            : `Please estimate the nutrients of the following meal content. ${langSuffixStr}`;
+    }
 
     if (additionalText) {
         userPrompt += currentLang === 'ja'
-            ? `\n\n【ユーザー提供の補足情報】:\n${additionalText}\n\nこの情報を画像解析の参考にし、特に分量や材料が指定されている場合は、画像の見た目よりもこの情報を優先して解析に反映させてください。`
-            : `\n\n[Additional User Info]:\n${additionalText}\n\nUse this information to assist the image analysis. If quantity or specific ingredients are mentioned, prioritize this text over the visual estimation.`;
+            ? `\n\n【内容】:\n${additionalText}\n\nこの情報を解析に反映させてください。`
+            : `\n\n[Content]:\n${additionalText}\n\nreflect this information in the analysis.`;
     }
 
     const systemPrompt = currentLang === 'ja'
         ? "あなたは日本の栄養管理の専門家です。全ての出力、特に料理名(name)は、必ず日本語で記述してください。各栄養素だけでなく野菜の総重量(g)、うち緑黄色野菜の重量(g)、食物繊維(g)も推測してください。結果は厳密に指定されたJSONフォーマットで回答してください。"
         : "You are an expert in nutrition management. You must output everything, especially the dish name (name), in English. Please also estimate total vegetable weight (g), green-yellow vegetable weight (g), and dietary fiber (g). Respond strictly in the specified JSON format.";
 
+    const parts = [{ text: userPrompt }];
+    if (base64Data) {
+        parts.push({ inline_data: { mime_type: mimeType, data: base64Data } });
+    }
+
     const payload = {
-        contents: [{ parts: [{ text: userPrompt }, { inline_data: { mime_type: mimeType, data: base64Data } }] }],
+        contents: [{ parts: parts }],
         system_instruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
             response_mime_type: "application/json",
@@ -150,6 +162,24 @@ fileInput.addEventListener('change', async (e) => {
     reader.readAsDataURL(file);
 });
 
+// [New] Text-only analysis handler
+document.getElementById('analyze-text-btn')?.addEventListener('click', async () => {
+    const text = document.getElementById('meal-note')?.value;
+    if (!text || text.trim().length === 0) {
+        alert(currentLang === 'ja' ? '解析する内容（料理名やレシピなど）を入力してください。' : 'Please enter the content to analyze (dish name, recipe, etc.).');
+        return;
+    }
+
+    try {
+        const data = await analyzeImage(null, null, 'food', text);
+        showEditModal(data);
+        if (window.showAiMessage) window.showAiMessage(t('ai_analyzed_praising'));
+    } catch (err) {
+        console.error(err);
+        alert(t('ai_err_fail') + ': ' + err.message);
+    }
+});
+
 // カテゴリ判定ロジックは app.js などで共有されるべきものですが、
 // ここではその日の時間帯に基づいて最適な食事区分を返します。
 function getAutoCategory() {
@@ -170,8 +200,8 @@ function showEditModal(data) {
     if (statusGlobal) statusGlobal.classList.add('hidden');
 
     const editForm = document.getElementById('edit-form');
-    const now = new Date();
-    const curDate = now.toISOString().split('T')[0];
+    const n = new Date();
+    const curDate = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
     const autoCategory = getAutoCategory();
 
     editForm.innerHTML = `

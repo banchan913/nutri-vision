@@ -4,7 +4,13 @@ const weightCharts = {};
 const fulfillmentCharts = {};
 
 function getBMR() {
-    const { gender, age, height, weight } = state.profile;
+    const targetBMR = 0; // alias
+    const p = state.profile || {};
+    const gender = p.gender || 'male';
+    const age = parseFloat(p.age) || 30;
+    const height = parseFloat(p.height) || 170;
+    const weight = parseFloat(p.weight) || 65;
+
     if (gender === 'male') {
         return (0.0481 * weight + 0.0234 * height - 0.0138 * age - 0.4235) * 1000 / 4.186;
     } else {
@@ -12,26 +18,32 @@ function getBMR() {
     }
 }
 
+function getTodayKey() {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+}
+
 function updateDashboardStats() {
-    const today = toCanonical(new Date().toLocaleDateString('ja-JP'));
-    const todayMeals = state.history.filter(h => toCanonical(h.date) === today);
-    const todayActs = state.activities.filter(a => toCanonical(a.date) === today);
+    if (!window.state) return;
+    const today = getTodayKey();
+    const todayMeals = (state.history || []).filter(h => toCanonical(h.date) === today);
+    const todayActs = (state.activities || []).filter(a => toCanonical(a.date) === today);
 
     const totals = todayMeals.reduce((acc, meal) => ({
-        calories: acc.calories + meal.calories,
-        p: acc.p + meal.p,
-        f: acc.f + meal.f,
-        c: acc.c + meal.c,
-        salt: acc.salt + (meal.salt || 0),
-        fiber: acc.fiber + (meal.fiber || 0),
-        veg: acc.veg + (meal.veg || 0),
-        gyVeg: acc.gyVeg + (meal.gyVeg || 0)
+        calories: acc.calories + (Number(meal.calories) || 0),
+        p: acc.p + (Number(meal.p) || 0),
+        f: acc.f + (Number(meal.f) || 0),
+        c: acc.c + (Number(meal.c) || 0),
+        salt: acc.salt + (Number(meal.salt) || 0),
+        fiber: acc.fiber + (Number(meal.fiber) || 0),
+        veg: acc.veg + (Number(meal.veg) || 0),
+        gyVeg: acc.gyVeg + (Number(meal.gyVeg) || 0)
     }), { calories: 0, p: 0, f: 0, c: 0, salt: 0, fiber: 0, veg: 0, gyVeg: 0 });
 
-    const totalBurned = todayActs.reduce((acc, act) => acc + act.calories, 0);
+    const totalBurned = todayActs.reduce((acc, act) => acc + (Number(act.calories) || 0), 0);
     const bmr = getBMR();
     const pal = parseFloat(state.profile.pal || 1.75);
-    const dailyTarget = Math.round(bmr * pal) + totalBurned;
+    const dailyTarget = Math.round((Number(bmr) || 1500) * (Number(pal) || 1.75)) + (Number(totalBurned) || 0);
 
     const targets = {
         p: (dailyTarget * 0.15) / 4,
@@ -50,8 +62,8 @@ function updateDashboardStats() {
         { label: t('dash_carbs'), val: totals.c, target: targets.c, unit: 'g', color: '#fb923c' },
         { label: t('dash_salt_today'), val: totals.salt, target: targets.salt, unit: 'g', color: '#f87171' },
         { label: t('dash_veg'), val: totals.veg, target: targets.veg, unit: 'g', color: '#4ade80' },
-        { label: t('dash_fiber'), val: totals.fiber, target: targets.fiber, unit: 'g', color: '#3b82f6' },
-        { label: t('dash_gyveg'), val: totals.gyVeg, target: targets.gyVeg, unit: 'g', color: '#10b981' }
+        { label: t('dash_gyveg'), val: totals.gyVeg, target: targets.gyVeg, unit: 'g', color: '#10b981' },
+        { label: t('dash_fiber'), val: totals.fiber, target: targets.fiber, unit: 'g', color: '#3b82f6' }
     ];
     renderFulfillmentChart('dashboardNutrientChart', fulfillmentItems);
 }
@@ -71,7 +83,7 @@ function getChartData(daysCount) {
     for (let i = daysCount - 1; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dateStr = toCanonical(d.toLocaleDateString('ja-JP'));
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
 
         const dayMeals = state.history.filter(h => toCanonical(h.date) === dateStr);
@@ -180,21 +192,45 @@ function updatePeriodAnalysis() {
     const data = useTotal ? totals : avgs;
     const dayMult = useTotal ? days : 1;
 
+    // 目標値の計算 (期間合計に応じたターゲット設定)
+    const bmrValue = getBMR();
+    const palValue = parseFloat(state.profile.pal || 1.75);
+    
+    // 期間中の活動による消費カロリー合計
+    const periodActs = state.activities.filter(a => {
+        const d = new Date(toCanonical(a.date));
+        return d >= start && d <= end;
+    });
+    const totalBurned = periodActs.reduce((s, a) => s + a.calories, 0);
+    
+    const dailyTargetBase = Math.round(bmrValue * palValue);
+    const totalTargetCal = (dailyTargetBase * dayMult) + totalBurned;
+
+    const targets = {
+        p: (totalTargetCal * 0.15) / 4,
+        f: (totalTargetCal * 0.25) / 9,
+        c: (totalTargetCal * 0.60) / 4,
+        salt: (state.profile.gender === 'male' ? 7.5 : 6.5) * dayMult,
+        fiber: (state.profile.gender === 'male' ? 21 : 18) * dayMult,
+        veg: 350 * dayMult,
+        gyVeg: 120 * dayMult
+    };
+
     let labelSuffix = '';
     if (useTotal) {
-        if (scope === 'week') labelSuffix = `直近7日間 合計`;
-        else if (scope === 'month') labelSuffix = `直近30日間 合計`;
-        else labelSuffix = `${days}日間 合計`;
+        if (scope === 'week') labelSuffix = `(7日間合計)`;
+        else if (scope === 'month') labelSuffix = `(30日間合計)`;
+        else labelSuffix = `(${days}日間合計)`;
     }
     const fulfillmentItems = [
-        { label: `${t('cal_intake_detailed')} ${labelSuffix}`, val: data.calories, target: targetBMR, unit: 'kcal', color: '#60a5fa' },
+        { label: `${t('cal_intake_detailed')} ${labelSuffix}`, val: data.calories, target: totalTargetCal, unit: 'kcal', color: '#60a5fa' },
         { label: t('dash_protein'), val: data.p, target: targets.p, unit: 'g', color: '#60a5fa' },
         { label: t('dash_fat'), val: data.f, target: targets.f, unit: 'g', color: '#facc15' },
         { label: t('dash_carbs'), val: data.c, target: targets.c, unit: 'g', color: '#fb923c' },
         { label: t('dash_salt_today'), val: data.salt, target: targets.salt, unit: 'g', color: '#f87171' },
         { label: t('dash_veg'), val: data.veg, target: targets.veg, unit: 'g', color: '#4ade80' },
-        { label: t('dash_fiber'), val: data.fiber, target: targets.fiber, unit: 'g', color: '#3b82f6' },
-        { label: t('dash_gyveg'), val: data.gyVeg, target: targets.gyVeg, unit: 'g', color: '#10b981' }
+        { label: t('dash_gyveg'), val: data.gyVeg, target: targets.gyVeg, unit: 'g', color: '#10b981' },
+        { label: t('dash_fiber'), val: data.fiber, target: targets.fiber, unit: 'g', color: '#3b82f6' }
     ];
 
     const container = document.getElementById('cal-charts-container');
@@ -213,8 +249,8 @@ function updatePeriodAnalysis() {
             <div style="font-size:12px;">${nLabel('dash_carbs', data.c.toFixed(1))}</div>
             <div style="font-size:12px;">${nLabel('dash_salt_today', data.salt.toFixed(1))}</div>
             <div style="font-size:12px;">${nLabel('dash_veg', data.veg.toFixed(0))}</div>
-            <div style="font-size:12px;">${nLabel('dash_fiber', data.fiber.toFixed(1))}</div>
             <div style="font-size:12px;">${nLabel('dash_gyveg', data.gyVeg.toFixed(0))}</div>
+            <div style="font-size:12px;">${nLabel('dash_fiber', data.fiber.toFixed(1))}</div>
         `;
     }
 }
@@ -225,25 +261,31 @@ function updatePeriodAnalysis() {
 function renderFulfillmentChart(canvasId, items) {
     const ctx = document.getElementById(canvasId)?.getContext('2d');
     if (!ctx) return;
-    if (fulfillmentCharts[canvasId]) fulfillmentCharts[canvasId].destroy();
+    try {
+        if (fulfillmentCharts[canvasId]) fulfillmentCharts[canvasId].destroy();
 
-    const maxVal = Math.max(...items.map(d => Math.max(d.val, d.target))) * 1.35; // 数値見切れ防止を強化
+    // 数値が不正（NaNなど）にならないよう強力にガード
+    const rawMax = Math.max(...items.map(d => Math.max(Number(d.val) || 0, Number(d.target) || 1)));
+    const maxVal = (!isFinite(rawMax) || rawMax <= 0) ? 2000 : rawMax * 1.35;
 
     fulfillmentCharts[canvasId] = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: items.map(d => d.label),
             datasets: [{
+                // 背景用のターゲットバー（空の状態でも枠が見えるように先に描画）
+                data: items.map(d => d.target),
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                borderRadius: 6,
+                barThickness: 16,
+                grouped: false // 重ねて表示するための設定
+            }, {
+                // 実績バー
                 data: items.map(d => d.val),
                 backgroundColor: items.map(d => d.color),
                 borderRadius: 6,
-                barThickness: 16
-            }, {
-                // 背景用のターゲットバー
-                data: items.map(d => d.target),
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                borderRadius: 6,
-                barThickness: 16
+                barThickness: 16,
+                grouped: false // 重ねて表示するための設定
             }]
         },
         options: {
@@ -269,19 +311,28 @@ function renderFulfillmentChart(canvasId, items) {
                 ctx.save();
                 ctx.font = 'bold 11px Inter, sans-serif';
                 ctx.textAlign = 'left';
-                const meta = chart.getDatasetMeta(0);
+                const meta = chart.getDatasetMeta(1); // 実績バー(index:1)を基準にする
                 meta.data.forEach((element, index) => {
                     const d = items[index];
-                    const ratio = Math.round((d.val / d.target) * 100);
+                    const targetVal = d.target || 1;
+                    const ratio = Math.round(((d.val || 0) / targetVal) * 100);
                     ctx.fillStyle = d.color;
-                    // バーの横に 「現在値 / 目標値 (比率)」 を表示
-                    const labelText = `${d.val.toFixed(1)}${d.unit} / ${Math.round(d.target)}${d.unit} (${ratio}%)`;
-                    ctx.fillText(labelText, element.x + 8, element.y + 5);
+                    
+                    const currentStr = (d.val || 0).toFixed(1);
+                    const targetStr = Math.round(targetVal);
+                    const labelText = `${currentStr}${d.unit} / ${targetStr}${d.unit} (${ratio}%)`;
+                    
+                    // バーが短くてもラベルが見えるよう、最低限のX座標を確保
+                    const xPos = Math.max(element.x + 8, 5); 
+                    ctx.fillText(labelText, xPos, element.y + 5);
                 });
                 ctx.restore();
             }
         }]
     });
+    } catch (e) {
+        console.error('Fulfillment chart render error:', e);
+    }
 }
 
 function renderIntakeChart(labels, intake, target, canvasId = 'intakeTargetChart') {
@@ -371,7 +422,7 @@ function renderPfcChart(labels, p, f, c, canvasId = 'pfcBalanceChart') {
             responsive: true, maintainAspectRatio: false,
             scales: {
                 x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                y: { stacked: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => v + '%' } }
+                y: { stacked: true, max: 110, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', callback: v => v <= 100 ? v + '%' : '' } }
             },
             plugins: {
                 legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } },
@@ -485,11 +536,31 @@ function updateAnalysisText(intakeArr, targetArr) {
 
 function toCanonical(dStr) {
     if (!dStr) return '';
-    try {
-        const d = new Date(dStr.replace(/\//g, '-'));
-        if (isNaN(d.getTime())) return dStr;
+    const s = String(dStr);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+    // スラッシュやハイフン、ドットなどで分割を試みる
+    const parts = s.split(/[^0-9]/).filter(p => p !== '');
+    if (parts.length >= 3) {
+        let year, month, day;
+        if (parts[0].length === 4) { // YYYY MM DD
+            [year, month, day] = parts;
+        } else if (parts[2].length === 4) { // MM DD YYYY or DD MM YYYY
+            year = parts[2];
+            month = parts[0];
+            day = parts[1];
+        }
+        if (year) {
+            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+    }
+
+    // fallback: Dateオブジェクトを介してローカル時間を尊重
+    const d = new Date(s.replace(/-/g, '/'));
+    if (!isNaN(d.getTime())) {
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    } catch (e) { return dStr; }
+    }
+    return dStr;
 }
 
 window.updateCharts = updateCharts;
