@@ -29,8 +29,10 @@ async function initApp() {
     // 初回起動チェック: プロフィールがなければ設定タブへ
     if (!state.profile) {
         switchTab('settings');
+        toggleProfileEdit(true); // 初回は編集モードで開始
         showAiMessage("Nutri-Visionへようこそ！まずはプロフィールを設定しましょう。");
     } else {
+        initProfileFields(); // プロフィール値をフォームに反映
         renderApp();
         showAiMessage(t(getGreetKey()));
     }
@@ -213,6 +215,104 @@ function showAiMessage(text) {
     toast.innerHTML = `<div style="font-size:24px;">👩‍⚕️</div><div style="font-size:13px; font-weight:500;">${text}</div>`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
+}
+
+/**
+ * プロフィール・設定の管理
+ */
+function initProfileFields() {
+    if (!state.profile) return;
+    const p = state.profile;
+    
+    document.getElementById('profile-age').value = p.age || 30;
+    document.getElementById('profile-height').value = p.height || 170;
+    document.getElementById('profile-weight').value = p.weight || 60;
+    document.getElementById('profile-gender').value = p.gender || 'male';
+    document.getElementById('profile-pal').value = p.pal || 1.75;
+    
+    // セグメントボタンの状態を同期
+    const updateSegments = (containerId, val) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.querySelectorAll('.segment-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-val') == val);
+            btn.onclick = () => {
+                container.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                // 隠しinputを更新
+                const hiddenInput = container.id.includes('gender') ? 'profile-gender' : 'profile-pal';
+                document.getElementById(hiddenInput).value = btn.getAttribute('data-val');
+            };
+        });
+    };
+    
+    updateSegments('profile-gender-selector', p.gender || 'male');
+    updateSegments('profile-pal-selector', p.pal || 1.75);
+}
+
+function initProfileSummary() {
+    const container = document.getElementById('profile-summary');
+    if (!container) return;
+    const p = state.profile || { age: '-', height: '-', weight: '-', gender: 'male', pal: 1.5 };
+    
+    container.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="summary-item"><small style="opacity:0.6">${t('set_gender')}</small><div>${p.gender === 'male' ? '男性' : '女性'}</div></div>
+            <div class="summary-item"><small style="opacity:0.6">${t('set_age')}</small><div>${p.age}歳</div></div>
+            <div class="summary-item"><small style="opacity:0.6">${t('set_height')}</small><div>${p.height}cm</div></div>
+            <div class="summary-item"><small style="opacity:0.6">${t('set_weight')}</small><div>${p.weight}kg</div></div>
+        </div>
+    `;
+}
+
+function toggleProfileEdit(show) {
+    const summaryCard = document.querySelector('.settings-group:first-child');
+    const summary = document.getElementById('profile-summary');
+    const editArea = document.getElementById('profile-edit-area');
+    const editBtn = document.querySelector('[data-i18n="set_btn_edit"]');
+    
+    if (show) {
+        summary.classList.add('hidden');
+        if (editBtn) editBtn.classList.add('hidden');
+        editArea.style.display = 'flex';
+        initProfileFields();
+    } else {
+        summary.classList.remove('hidden');
+        if (editBtn) editBtn.classList.remove('hidden');
+        editArea.style.display = 'none';
+        initProfileSummary();
+    }
+}
+
+function saveProfile() {
+    const age = parseInt(document.getElementById('profile-age').value);
+    const height = parseInt(document.getElementById('profile-height').value);
+    const weight = parseInt(document.getElementById('profile-weight').value);
+    const gender = document.getElementById('profile-gender').value;
+    const pal = parseFloat(document.getElementById('profile-pal').value);
+
+    if (!age || !height || !weight) {
+        alert("全ての項目を入力してください。");
+        return;
+    }
+
+    state.profile = { age, height, weight, gender, pal };
+    localStorage.setItem('nutri_profile', JSON.stringify(state.profile));
+    
+    toggleProfileEdit(false);
+    showAiMessage("ポロフィールを保存しました。目標値を再計算します！✨");
+    renderApp();
+}
+
+function saveSettings() {
+    const key = document.getElementById('gemini-api-key').value;
+    if (!key) {
+        alert("APIキーを入力してください。");
+        return;
+    }
+    state.settings.geminiApiKey = key;
+    localStorage.setItem('nutri_settings', JSON.stringify(state.settings));
+    showAiMessage("設定を保存しました。いつでも解析を始められます！💪");
 }
 
 function getGreetKey() {
