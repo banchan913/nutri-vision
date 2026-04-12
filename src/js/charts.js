@@ -120,3 +120,62 @@ function renderPredictionChart(predictionData) {
     });
 }
 
+/**
+ * カレンダー詳細用の栄養素達成度グラフ
+ */
+function renderDayDetailChart(containerId, results, targets) {
+    const ctx = document.getElementById(containerId);
+    if (!ctx) return;
+
+    const items = [
+        { label: t('n_calories'), val: results.calories, target: targets.calories, unit: 'kcal', color: '#3b82f6' },
+        { label: t('n_protein'), val: results.p, target: targets.p, unit: 'g', color: '#60a5fa' },
+        { label: t('n_fat'), val: results.f, target: targets.f, unit: 'g', color: '#93c5fd' },
+        { label: t('n_carbs'), val: results.c, target: targets.c, unit: 'g', color: '#bfdbfe' },
+        { label: t('n_salt'), val: results.salt, target: targets.salt, unit: 'g', color: '#f59e0b' },
+        { label: t('n_veg'), val: results.veg, target: targets.veg, unit: 'g', color: '#10b981' },
+        { label: t('n_gyveg'), val: results.gyveg, target: targets.gyveg, unit: 'g', color: '#34d399' },
+        { label: t('n_fiber'), val: results.fiber, target: targets.fiber, unit: 'g', color: '#6ee7b7' }
+    ];
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: items.map(i => i.label),
+            datasets: [{
+                data: items.map(i => (i.val / i.target) * 100),
+                backgroundColor: items.map(i => (i.val / i.target) * 100 > 100 ? '#ef4444' : i.color),
+                borderRadius: 4,
+                barThickness: 14
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { 
+                    max: 150, min: 0,
+                    grid: { 
+                        color: (c) => c.tick.value === 100 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.05)',
+                        lineWidth: (c) => c.tick.value === 100 ? 2 : 1
+                    },
+                    ticks: { callback: v => v + '%', font: { size: 10 } }
+                },
+                y: { ticks: { font: { size: 11, weight: '600' }, color: '#94a3b8' }, grid: { display: false } }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => {
+                            const i = items[c.dataIndex];
+                            return `${Math.round(i.val)}${i.unit} / 目標 ${Math.round(i.target)}${i.unit} (${c.raw.toFixed(1)}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+

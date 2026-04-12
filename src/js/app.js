@@ -253,6 +253,7 @@ function switchTab(tabId) {
     if (targetTab) targetTab.classList.add('active');
     if (targetNav) targetNav.classList.add('active');
 
+    if (tabId !== 'record') closeConfirmModal(); // 記録以外では確認画面を閉じる
     renderApp();
 }
 
@@ -362,6 +363,24 @@ function initConfirmationModal() {
         btn.onclick = () => {
             btns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            
+            // カテゴリに応じて数値を自動調整
+            const cat = btn.dataset.val;
+            if (!pendingAnalysisResult) return;
+
+            let multiplier = 1.0;
+            let saltMultiplier = 1.0;
+            let fatMultiplier = 1.0;
+
+            if (cat === 'eating_out') { multiplier = 1.3; saltMultiplier = 1.8; fatMultiplier = 1.5; }
+            if (cat === 'convenience') { multiplier = 1.15; saltMultiplier = 1.4; fatMultiplier = 1.25; }
+            if (cat === 'home') { multiplier = 0.9; saltMultiplier = 0.85; fatMultiplier = 0.85; }
+
+            document.getElementById('conf-calories').value = Math.round(pendingAnalysisResult.calories * multiplier);
+            document.getElementById('conf-salt').value = (pendingAnalysisResult.salt * saltMultiplier).toFixed(1);
+            document.getElementById('conf-p').value = Math.round(pendingAnalysisResult.p * multiplier);
+            document.getElementById('conf-f').value = Math.round(pendingAnalysisResult.f * fatMultiplier);
+            document.getElementById('conf-c').value = Math.round(pendingAnalysisResult.c * multiplier);
         };
     });
 }
@@ -629,18 +648,16 @@ function renderAggregateReport(scope) {
     let title = "";
     
     if (scope === 'week') {
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        filteredHistory = state.history.filter(h => new Date(h.date) >= sevenDaysAgo);
+        const start = new Date();
+        start.setDate(start.getDate() - 7);
+        filteredHistory = state.history.filter(h => new Date(h.date) >= start);
         title = "直近7日間の分析レポート";
     } else {
-        const year = state.viewDate.getFullYear();
-        const month = state.viewDate.getMonth();
-        filteredHistory = state.history.filter(h => {
-            const d = new Date(h.date);
-            return d.getFullYear() === year && d.getMonth() === month;
-        });
-        title = `${year}年 ${month + 1}月の分析レポート`;
+        // 今日から30日前を範囲にする
+        const start = new Date();
+        start.setDate(start.getDate() - 30);
+        filteredHistory = state.history.filter(h => new Date(h.date) >= start);
+        title = `直近30日間の分析レポート`;
     }
 
     const avg = calculateAverageNutrients(filteredHistory);
@@ -757,43 +774,63 @@ function showDayDetails(dateStr) {
     if (meals.length === 0 && acts.length === 0) {
         detailEl.innerHTML = `<p style="text-align:center; color:var(--text-secondary); padding:20px;">${t('cal_no_data')}</p>`;
     } else {
-        let html = `<h4 style="margin-bottom:15px; font-family:var(--font-accent);">${dateStr} の詳細記録</h4>`;
+        let html = `<h4 style="margin-bottom:15px; font-family:var(--font-accent);">${dateStr} の詳細</h4>`;
         
+        const dayTotals = { calories: 0, p: 0, f: 0, c: 0, salt: 0, veg: 0, gyveg: 0, fiber: 0 };
+
         if (meals.length > 0) {
-            html += `<h5 style="margin:10px 0;">🥗 食事</h5>`;
-            html += meals.map(m => `
+            html += `<h5 style="margin:10px 0;">🥗 食事の記録</h5>`;
+            html += meals.map(m => {
+                dayTotals.calories += m.calories || 0;
+                dayTotals.p += m.p || 0;
+                dayTotals.f += m.f || 0;
+                dayTotals.c += m.c || 0;
+                dayTotals.salt += m.salt || 0;
+                dayTotals.veg += m.veg || 0;
+                dayTotals.gyveg += m.gyveg || 0;
+                dayTotals.fiber += m.fiber || 0;
+
+                return `
                 <div class="detail-item-card">
                     <div class="detail-item-header">
                         <span class="detail-item-name">${m.name}</span>
                         <span style="color:var(--accent-success); font-weight:700;">${m.calories} kcal</span>
                     </div>
-                    <div class="nutrient-badges">
-                        <div class="n-badge"><span>P</span>${m.p}g</div>
-                        <div class="n-badge"><span>F</span>${m.f}g</div>
-                        <div class="n-badge"><span>C</span>${m.c}g</div>
-                        <div class="n-badge"><span>塩</span>${m.salt}g</div>
-                        <div class="n-badge"><span>筋</span>${m.veg}g</div>
-                        <div class="n-badge"><span>緑</span>${m.gyveg}g</div>
-                        <div class="n-badge"><span>繊</span>${m.fiber}g</div>
-                        <div class="n-badge"><span>種</span>${m.category || '自炊'}</div>
+                    <div class="detail-nutrient-list">
+                        <div class="detail-nutrient-row"><span class="detail-n-label">${t('n_protein')}</span><span class="detail-n-val">${m.p}g</span></div>
+                        <div class="detail-nutrient-row"><span class="detail-n-label">${t('n_fat')}</span><span class="detail-n-val">${m.f}g</span></div>
+                        <div class="detail-nutrient-row"><span class="detail-n-label">${t('n_carbs')}</span><span class="detail-n-val">${m.c}g</span></div>
+                        <div class="detail-nutrient-row"><span class="detail-n-label">${t('n_salt')}</span><span class="detail-n-val">${m.salt}g</span></div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
+
+            // 1日の合計達成度グラフ
+            html += `<h5 style="margin:20px 0 10px;">📊 1日の栄養達成度</h5>
+                     <div class="day-detail-chart-wrapper"><canvas id="dayDetailChart"></canvas></div>`;
         }
         
         if (acts.length > 0) {
-            html += `<h5 style="margin:20px 0 10px;">🏃 運動</h5>`;
+            html += `<h5 style="margin:20px 0 10px;">🏃 運動の記録</h5>`;
             html += acts.map(a => `
                 <div class="detail-item-card">
                     <div class="detail-item-header">
                         <span class="detail-item-name">${t('act_' + a.type)}</span>
                         <span style="color:var(--accent-warning); font-weight:700;">-${a.calories} kcal</span>
                     </div>
-                    <div style="font-size:12px; color:var(--text-secondary);">${a.minutes} 分間 継続</div>
+                    <div style="font-size:12px; color:var(--text-secondary);">${a.minutes} 分間</div>
                 </div>
             `).join('');
         }
         detailEl.innerHTML = html;
+
+        // グラフ描画
+        if (meals.length > 0) {
+            setTimeout(() => {
+                const targets = calculateDailyTargets(state.profile);
+                renderDayDetailChart('dayDetailChart', dayTotals, targets);
+            }, 100);
+        }
     }
     detailEl.classList.remove('hidden');
 }
