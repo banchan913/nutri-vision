@@ -11,10 +11,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 全ての機能の基盤となる翻訳と辞書 -->
     <script src="src/js/i18n.js"></script>
 </head>
 <body class="dark-theme">
     <div id="app">
+        <!-- サイドナビゲーション -->
         <nav class="side-nav">
             <div class="logo">
                 <img src="src/img/icon.png" alt="Logo" style="width: 28px; height: 28px; border-radius: 6px;">
@@ -22,9 +24,9 @@
             </div>
             <ul class="nav-links">
                 <li class="active" data-tab="dashboard"><i class="ph ph-squares-four"></i><span data-i18n="nav_dashboard">ホーム</span></li>
-                <li data-tab="calendar"><i class="ph ph-calendar-blank"></i><span data-i18n="nav_calendar">カレンダー</span></li>
-                <li data-tab="meal-log"><i class="ph ph-camera"></i><span data-i18n="nav_record">記録する</span></li>
-                <li data-tab="analysis"><i class="ph ph-chart-line-up"></i><span data-i18n="nav_analysis">トレンド分析</span></li>
+                <li data-tab="calendar"><i class="ph ph-calendar-blank"></i><span data-i18n="nav_calendar">分析</span></li>
+                <li data-tab="meal-log"><i class="ph ph-camera"></i><span data-i18n="nav_record">記録</span></li>
+                <li data-tab="analysis"><i class="ph ph-chart-line-up"></i><span data-i18n="nav_analysis">トレンド</span></li>
                 <li data-tab="history"><i class="ph ph-clock-counter-clockwise"></i><span data-i18n="nav_history">全履歴</span></li>
                 <li data-tab="settings"><i class="ph ph-gear"></i><span data-i18n="nav_settings">設定</span></li>
             </ul>
@@ -33,66 +35,52 @@
         <main class="content-area">
             <header class="main-header">
                 <h1 id="page-title" data-i18n="nav_dashboard">ホーム</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="sync-btn"><i class="ph ph-arrows-clockwise"></i><span data-i18n="btn_sync">同期</span></button>
+                    <button class="btn btn-primary" onclick="switchTab('meal-log')"><i class="ph ph-plus-circle"></i><span data-i18n="btn_record">記録開始</span></button>
+                </div>
             </header>
 
             <div id="tab-container">
                 <!-- Dashboard Tab -->
                 <section id="dashboard-tab" class="tab-pane active">
-                    <div class="charts-container">
+                    <div class="charts-grid" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
                         <div class="chart-box">
-                            <h3 data-i18n="dash_fulfillment_today">今日の目標達成状況</h3>
+                            <h3 data-i18n="dash_fulfillment_today" style="margin-bottom: 20px;">栄養バランス</h3>
                             <div style="height: 400px;"><canvas id="dashboardNutrientChart"></canvas></div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Calendar Tab -->
+                <!-- Calendar Tab (期間ボタン連動) -->
                 <section id="calendar-tab" class="tab-pane">
                     <div class="segment-selector" id="cal-scope-selector" style="margin-bottom: 20px;">
                         <div class="segment-btn active" data-val="day" data-i18n="cal_scope_day">1日ごと</div>
-                        <div class="segment-btn" data-val="week" data-i18n="cal_scope_week">1週間（合計）</div>
-                        <div class="segment-btn" data-val="month" data-i18n="cal_scope_month">1ヶ月（合計）</div>
+                        <div class="segment-btn" data-val="week" data-i18n="cal_scope_week">今日から7日間</div>
+                        <div class="segment-btn" data-val="month" data-i18n="cal_scope_month">今日から30日間</div>
                     </div>
-                    <div id="cal-charts-container" class="charts-container" style="display: none; flex-direction: column; gap: 20px; margin-bottom: 20px;">
-                        <div class="chart-box" style="padding: 15px;">
-                            <div style="height: 200px;"><canvas id="calPfcChart"></canvas></div>
-                        </div>
-                        <div class="chart-box" style="padding: 15px;">
-                            <div style="height: 350px;"><canvas id="calNutrientChart"></canvas></div>
-                        </div>
+                    <div id="calendar-analysis-container">
+                        <!-- ここにチャートが出現 -->
                     </div>
                 </section>
 
-                <!-- Meal Log Tab (Missing elements here!) -->
+                <!-- Recording Tab (AI写真解析との紐付け) -->
                 <section id="meal-log-tab" class="tab-pane">
-                    <div class="recording-area">
+                    <div class="recording-card" style="text-align: center; padding: 40px;">
                         <input type="file" id="file-input" accept="image/*" hidden>
-                        <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
-                            <i class="ph ph-camera"></i> <span>写真を解析する</span>
+                        <button class="camera-trigger" onclick="document.getElementById('file-input').click()" style="width: 150px; height: 150px; border-radius: 50%; background: var(--accent-primary); color: white; border: none; font-size: 48px; box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);">
+                            <i class="ph ph-camera"></i>
                         </button>
-                        <div id="image-preview-container" class="hidden">
-                            <img id="image-preview" src="" alt="Preview">
-                        </div>
+                        <p style="margin-top: 20px; font-weight: 600;">写真を撮ってAI解析を開始</p>
                     </div>
                 </section>
-
+                
                 <!-- Settings Tab -->
                 <section id="settings-tab" class="tab-pane">
                     <div class="settings-group">
-                        <h3 data-i18n="set_prof_title">プロフィール</h3>
-                        <!-- 昨日のサマリー表示 (ID: profile-summary-area) -->
-                        <div id="profile-summary-area" class="profile-summary-card"></div>
-                        
-                        <!-- 編集エリア (IDs for app.js) -->
-                        <div id="profile-edit-area" style="display: none; flex-direction: column; gap: 15px;">
-                            <input type="number" id="profile-age">
-                            <input type="number" id="profile-height">
-                            <input type="number" id="profile-weight">
-                            <input type="hidden" id="profile-gender">
-                            <input type="hidden" id="profile-pal">
-                            <!-- セグメントセレクターID -->
-                            <div id="profile-gender-selector" class="profile-options"></div>
-                            <div id="profile-pal-selector" class="profile-options"></div>
+                        <h3 data-i18n="set_prof_title">パーソナルプロフィール</h3>
+                        <div id="profile-summary-area" class="profile-summary-card">
+                            <!-- JSで流し込む -->
                         </div>
                     </div>
                 </section>
@@ -100,9 +88,10 @@
         </main>
     </div>
 
-    <!-- 寄り添うスタッフのメッセージコンテナ -->
+    <!-- AI寄り添うメッセージコンテナ -->
     <div id="ai-message-container"></div>
 
+    <!-- 安定した順序でのスクリプト読み込み -->
     <script src="src/js/sheets.js"></script>
     <script src="src/js/gemini.js"></script>
     <script src="src/js/charts.js"></script>
