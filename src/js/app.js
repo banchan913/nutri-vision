@@ -248,14 +248,16 @@ function renderApp() {
     if (state.isUpdating) return;
     state.isUpdating = true;
     
-    updateDashboardStats();
-    renderCalendar();
-    updateUserStatus();
+    // 他のスクリプト（charts.js等）が読み込まれているか確認しながら実行
+    if (typeof updateDashboardStats === 'function') updateDashboardStats();
+    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof updateUserStatus === 'function') updateUserStatus();
     
-    if (state.activeTab === 'history') renderHistoryList();
-    if (window.updateCharts) window.updateCharts();
+    if (state.activeTab === 'history' && typeof renderHistoryList === 'function') {
+        renderHistoryList();
+    }
+    if (typeof window.updateCharts === 'function') window.updateCharts();
 
-    // オンボーディングバナーの表示制御
     const guide = document.getElementById('onboarding-guide');
     if (guide) guide.classList.toggle('hidden', state.setupComplete);
     

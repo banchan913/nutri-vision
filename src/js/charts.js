@@ -56,14 +56,14 @@ function updateDashboardStats() {
     };
 
     const fulfillmentItems = [
-        { label: t('cal_intake'), val: totals.calories, target: dailyTarget, unit: 'kcal', color: '#60a5fa' },
-        { label: t('dash_protein'), val: totals.p, target: targets.p, unit: 'g', color: '#60a5fa' },
-        { label: t('dash_fat'), val: totals.f, target: targets.f, unit: 'g', color: '#facc15' },
-        { label: t('dash_carbs'), val: totals.c, target: targets.c, unit: 'g', color: '#fb923c' },
-        { label: t('dash_salt_today'), val: totals.salt, target: targets.salt, unit: 'g', color: '#f87171' },
-        { label: t('dash_veg'), val: totals.veg, target: targets.veg, unit: 'g', color: '#4ade80' },
-        { label: t('dash_gyveg'), val: totals.gyVeg, target: targets.gyVeg, unit: 'g', color: '#10b981' },
-        { label: t('dash_fiber'), val: totals.fiber, target: targets.fiber, unit: 'g', color: '#3b82f6' }
+        { label: t('cal_intake'), val: Number(totals.calories) || 0, target: Number(dailyTarget) || 0, unit: 'kcal', color: '#60a5fa' },
+        { label: t('dash_protein'), val: Number(totals.p) || 0, target: Number(targets.p) || 0, unit: 'g', color: '#60a5fa' },
+        { label: t('dash_fat'), val: Number(totals.f) || 0, target: Number(targets.f) || 0, unit: 'g', color: '#60a5fa' },
+        { label: t('dash_carbs'), val: Number(totals.c) || 0, target: Number(targets.c) || 0, unit: 'g', color: '#60a5fa' },
+        { label: t('dash_salt_today'), val: Number(totals.salt) || 0, target: Number(targets.salt) || 0, unit: 'g', color: '#60a5fa' },
+        { label: t('dash_veg'), val: Number(totals.veg) || 0, target: Number(targets.veg) || 0, unit: 'g', color: '#10b981' },
+        { label: t('dash_gyveg'), val: Number(totals.gyVeg) || 0, target: Number(targets.gyVeg) || 0, unit: 'g', color: '#10b981' },
+        { label: t('dash_fiber'), val: Number(totals.fiber) || 0, target: Number(targets.fiber) || 0, unit: 'g', color: '#10b981' }
     ];
     renderFulfillmentChart('dashboardNutrientChart', fulfillmentItems);
 }
@@ -292,7 +292,15 @@ function renderFulfillmentChart(canvasId, items) {
             indexAxis: 'y',
             responsive: true, maintainAspectRatio: false,
             scales: {
-                x: { max: maxVal, display: false, grid: { display: false } },
+                x: { 
+                    beginAtZero: true,
+                    max: (() => {
+                        const maxVal = Math.max(...items.map(i => Math.max(Number(i.val) || 0, Number(i.target) || 0)));
+                        return isFinite(maxVal) && maxVal > 0 ? maxVal * 1.1 : 100;
+                    })(),
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#94a3b8' } 
+                },
                 y: {
                     stacked: true,
                     grid: { display: false },
